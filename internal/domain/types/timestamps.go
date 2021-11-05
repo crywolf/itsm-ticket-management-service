@@ -1,27 +1,82 @@
 package types
 
-import "github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+import (
+	"errors"
 
-// CreatedUpdated contains timestamps and user who created/updated the resource
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+)
+
+// CreatedUpdated contains timestamps and reference to user who created/updated the resource
 type CreatedUpdated struct {
 	createdInfo
 	updatedInfo
 }
 
+// GetCreatedBy ...
+func (o CreatedUpdated) GetCreatedBy() ref.ExternalUserUUID {
+	return o.createdBy
+}
+
+// GetCreatedAt ...
+func (o CreatedUpdated) GetCreatedAt() DateTime {
+	return o.createdAt
+}
+
+// GetUpdatedBy ...
+func (o CreatedUpdated) GetUpdatedBy() ref.ExternalUserUUID {
+	return o.updatedBy
+}
+
+// GetUpdatedAt ...
+func (o CreatedUpdated) GetUpdatedAt() DateTime {
+	return o.updatedAt
+}
+
+// SetCreatedBy returns error if createdBy was already set
+func (o *CreatedUpdated) SetCreatedBy(userID ref.ExternalUserUUID) error {
+	if !o.createdBy.IsZero() {
+		return errors.New("cannot set CreatedBy, it was already set")
+	}
+	o.createdBy = userID
+	return nil
+}
+
+// SetCreatedAt returns error if createdAt was already set
+func (o *CreatedUpdated) SetCreatedAt(dateTime DateTime) error {
+	if !o.createdAt.IsZero() {
+		return errors.New("cannot set CreatedAt, it was already set")
+	}
+
+	o.createdAt = dateTime
+	return nil
+}
+
+// SetUpdatedBy ...
+func (o *CreatedUpdated) SetUpdatedBy(userID ref.ExternalUserUUID) error {
+	o.updatedBy = userID
+	return nil
+}
+
+// SetUpdatedAt ...
+func (o *CreatedUpdated) SetUpdatedAt(dateTime DateTime) error {
+	o.updatedAt = dateTime
+	return nil
+}
+
 // createdInfo contains timestamp and user who created the resource
 type createdInfo struct {
 	// Time when the resource was created
-	CreatedAt DateTime
+	createdAt DateTime
 
 	// Reference to the user who created this resource
-	CreatedBy ref.ExternalUserUUID
+	createdBy ref.ExternalUserUUID
 }
 
 // updatedInfo contains timestamp and user who updated the resource
 type updatedInfo struct {
 	// Time when the resource was updated
-	UpdatedAt DateTime
+	updatedAt DateTime
 
 	// Reference to the user who updated this resource
-	UpdatedBy ref.ExternalUserUUID
+	updatedBy ref.ExternalUserUUID
 }

@@ -39,7 +39,7 @@ func (m *RepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc i
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
 		State:            incident.StateNew.String(),
-		CreatedBy:        inc.GetCreatedBy().String(),
+		CreatedBy:        inc.CreatedUpdated.GetCreatedBy().String(),
 		CreatedAt:        m.Clock.Now().Format(time.RFC3339),
 	}
 	m.incidents = append(m.incidents, storedInc)
@@ -69,12 +69,12 @@ func (m *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID re
 				return inc, errors.Wrap(err, "error loading incident from the repository")
 			}
 
-			err = inc.SetCreatedBy(ref.ExternalUserUUID(si.CreatedBy))
+			err = inc.CreatedUpdated.SetCreatedBy(ref.ExternalUserUUID(si.CreatedBy))
 			if err != nil {
 				return inc, errors.Wrap(err, "error loading incident from the repository")
 			}
 
-			err = inc.SetCreatedAt(types.DateTime(si.CreatedAt))
+			err = inc.CreatedUpdated.SetCreatedAt(types.DateTime(si.CreatedAt))
 			if err != nil {
 				return inc, errors.Wrap(err, "error loading incident from the repository")
 			}

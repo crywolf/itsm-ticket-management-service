@@ -118,13 +118,13 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		}
 
 		createdInfo := api.CreatedInfo{
-			CreatedAt: api.DateTime(asset.GetCreatedAt()),
-			CreatedBy: asset.GetCreatedBy().String(),
+			CreatedAt: api.DateTime(asset.CreatedUpdated.GetCreatedAt()),
+			CreatedBy: asset.CreatedUpdated.GetCreatedBy().String(),
 		}
 
 		updatedInfo := api.UpdatedInfo{
-			UpdatedAt: api.DateTime(asset.GetUpdatedAt()),
-			UpdatedBy: asset.GetUpdatedBy().String(),
+			UpdatedAt: api.DateTime(asset.CreatedUpdated.GetUpdatedAt()),
+			UpdatedBy: asset.CreatedUpdated.GetUpdatedBy().String(),
 		}
 
 		inc := api.Incident{

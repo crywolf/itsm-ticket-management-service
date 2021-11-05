@@ -18,7 +18,7 @@ type service struct {
 	r IncidentRepository
 }
 
-func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID /* actor user.BasicUser,*/, params api.CreateIncidentParams) (ref.UUID, error) {
+func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID /*, actor user.BasicUser,*/, params api.CreateIncidentParams) (ref.UUID, error) {
 	newIncident := incident.Incident{
 		ExternalID:       params.ExternalID,
 		ShortDescription: params.ShortDescription,
@@ -26,8 +26,10 @@ func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID /*
 	}
 
 	// TODO take from func params
-	actor := user.BasicUser{}
-	err := newIncident.SetCreatedBy(actor.ExternalUserUUID)
+	actor := user.BasicUser{
+		ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+	}
+	err := newIncident.CreatedUpdated.SetCreatedBy(actor.ExternalUserUUID)
 	if err != nil {
 		return ref.UUID(""), err
 	}
