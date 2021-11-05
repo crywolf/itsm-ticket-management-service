@@ -1,0 +1,358 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  CreateIncidentParams:
+    description: CreateIncidentParams is the payload used to create new incident
+    properties:
+      description:
+        type: string
+        x-go-name: Description
+      external_id:
+        description: ID in external system
+        type: string
+        x-go-name: ExternalID
+      short_description:
+        type: string
+        x-go-name: ShortDescription
+    required:
+    - short_description
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  CreatedInfo:
+    description: CreatedInfo contains timestamp and user who created the resource
+    properties:
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+    required:
+    - created_at
+    - created_by
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  CreatedUpdated:
+    description: CreatedUpdated contains timestamps and user who created/updated the
+      resource
+    properties:
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+    required:
+    - created_at
+    - created_by
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  HypermediaLinks:
+    description: HypermediaLinks contain links to other API calls
+    properties:
+      self:
+        properties:
+          href:
+            format: uri
+            type: string
+            x-go-name: Href
+        type: object
+        x-go-name: Self
+    required:
+    - self
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  Incident:
+    description: Incident API object
+    properties:
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+      description:
+        type: string
+        x-go-name: Description
+      external_id:
+        description: ID in external system
+        type: string
+        x-go-name: ExternalID
+      short_description:
+        type: string
+        x-go-name: ShortDescription
+      state:
+        description: State of the ticket
+        example: new
+        format: string
+        type: string
+        x-go-name: State
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+      uuid:
+        format: uuid
+        type: string
+        x-go-name: UUID
+    required:
+    - created_at
+    - created_by
+    - uuid
+    - short_description
+    - state
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  State:
+    title: State of the ticket is enum.
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident
+  UpdatedInfo:
+    description: UpdatedInfo contains timestamp and user who updated the resource
+    properties:
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+info:
+  description: Documentation for ITSM Ticket Management Service REST API
+  title: ITSM Ticket Management Service REST API
+  version: 0.0.1
+paths:
+  /incidents:
+    post:
+      description: Creates a new incident
+      operationId: CreateIncident
+      parameters:
+      - description: Bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+        x-go-name: Authorization
+      - format: uuid
+        in: header
+        name: channel-id
+        required: true
+        type: string
+        x-go-name: ChannelID
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateIncidentParams'
+      responses:
+        "201":
+          $ref: '#/responses/incidentCreatedResponse'
+        "400":
+          $ref: '#/responses/errorResponse400'
+        "401":
+          $ref: '#/responses/errorResponse401'
+        "403":
+          $ref: '#/responses/errorResponse403'
+        "409":
+          $ref: '#/responses/errorResponse409'
+      tags:
+      - incidents
+  /incidents/{uuid}:
+    get:
+      description: Returns a single incident from the repository
+      operationId: GetIncident
+      parameters:
+      - description: Bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+        x-go-name: Authorization
+      - format: uuid
+        in: header
+        name: channel-id
+        required: true
+        type: string
+        x-go-name: ChannelID
+      - description: ID of the resource
+        format: uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+        x-go-name: UUID
+      responses:
+        "200":
+          $ref: '#/responses/incidentResponse'
+        "400":
+          $ref: '#/responses/errorResponse400'
+        "401":
+          $ref: '#/responses/errorResponse401'
+        "403":
+          $ref: '#/responses/errorResponse403'
+        "404":
+          $ref: '#/responses/errorResponse404'
+      tags:
+      - incidents
+produces:
+- application/json
+responses:
+  deleteNoContentResponse:
+    description: No content
+  errorResponse:
+    description: Error
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  errorResponse400:
+    description: Bad Request
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  errorResponse401:
+    description: Unauthorized
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  errorResponse403:
+    description: Forbidden
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  errorResponse404:
+    description: Not Found
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  errorResponse409:
+    description: Conflict
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: ErrorMessage
+      required:
+      - error
+      type: object
+  incidentCreatedResponse:
+    description: Created
+    headers:
+      Location:
+        description: URI of the resource
+        example: http://localhost:8080/incidents/2af4f493-0bd5-4513-b440-6cbb465feadb
+        type: string
+  incidentResponse:
+    description: Data structure representing a single incident
+    schema:
+      properties:
+        _links:
+          $ref: '#/definitions/HypermediaLinks'
+        created_at:
+          description: Time when the resource was created
+          format: date-time
+          type: string
+          x-go-name: CreatedAt
+        created_by:
+          description: Reference to the user who created this resource
+          format: uuid
+          type: string
+          x-go-name: CreatedBy
+        description:
+          type: string
+          x-go-name: Description
+        external_id:
+          description: ID in external system
+          type: string
+          x-go-name: ExternalID
+        short_description:
+          type: string
+          x-go-name: ShortDescription
+        state:
+          description: State of the ticket
+          example: new
+          format: string
+          type: string
+          x-go-name: State
+        updated_at:
+          description: Time when the resource was updated
+          format: date-time
+          type: string
+          x-go-name: UpdatedAt
+        updated_by:
+          description: Reference to the user who updated this resource
+          format: uuid
+          type: string
+          x-go-name: UpdatedBy
+        uuid:
+          format: uuid
+          type: string
+          x-go-name: UUID
+      required:
+      - created_at
+      - created_by
+      - uuid
+      - short_description
+      - state
+      type: object
+schemes:
+- http
+swagger: "2.0"

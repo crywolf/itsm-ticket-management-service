@@ -1,0 +1,66 @@
+package api
+
+import "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+
+// Incident API object
+// swagger:model
+type Incident struct {
+	// required: true
+	// swagger:strfmt uuid
+	UUID string `json:"uuid"`
+
+	// ID in external system
+	ExternalID string `json:"external_id,omitempty"`
+
+	// required: true
+	ShortDescription string `json:"short_description"`
+
+	Description string `json:"description,omitempty"`
+
+	// State of the ticket
+	// required: true
+	// example: new
+	State incident.State `json:"state"`
+
+	CreatedUpdated
+}
+
+// CreateIncidentParams is the payload used to create new incident
+// swagger:model
+type CreateIncidentParams struct {
+	// ID in external system
+	ExternalID string `json:"external_id,omitempty"`
+
+	// required: true
+	ShortDescription string `json:"short_description"`
+
+	Description string `json:"description,omitempty"`
+}
+
+// Data structure representing a single incident
+// swagger:response incidentResponse
+type incidentResponseWrapper struct {
+	// in: body
+	Body struct {
+		Incident
+		Links HypermediaLinks `json:"_links"`
+	}
+}
+
+// Created
+// swagger:response incidentCreatedResponse
+type incidentCreatedResponseWrapper struct {
+	// URI of the resource
+	// example: http://localhost:8080/incidents/2af4f493-0bd5-4513-b440-6cbb465feadb
+	// in: header
+	Location string
+}
+
+// swagger:parameters CreateIncident
+type createIncidentParameterWrapper struct {
+	AuthorizationHeaders
+
+	// in: body
+	// required: true
+	Body CreateIncidentParams
+}
