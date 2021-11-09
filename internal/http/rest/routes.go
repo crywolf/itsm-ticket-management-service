@@ -14,10 +14,9 @@ func (s *Server) routes() {
 	router := s.router
 
 	// incidents
-	router.GET("/incidents/:id", s.GetIncident())
-	//	router.GET("/incidents", s.ListIncidents)
-
 	router.POST("/incidents", s.CreateIncident())
+	router.GET("/incidents/:id", s.GetIncident())
+	router.GET("/incidents", s.ListIncidents())
 
 	// API documentation
 	opts := middleware.RedocOpts{Path: "/docs", SpecURL: "/swagger.yaml", Title: "Ticket management service API documentation"}

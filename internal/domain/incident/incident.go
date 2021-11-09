@@ -1,13 +1,15 @@
 package incident
 
 import (
+	"errors"
+
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 )
 
 // Incident domain object
 type Incident struct {
-	UUID ref.UUID
+	uuid ref.UUID
 
 	// ID in external system
 	ExternalID string
@@ -21,13 +23,28 @@ type Incident struct {
 	CreatedUpdated types.CreatedUpdated
 }
 
-// GetState ...
-func (i Incident) GetState() State {
+// UUID getter
+func (i Incident) UUID() ref.UUID {
+	return i.uuid
+}
+
+// SetUUID ...
+func (i *Incident) SetUUID(v ref.UUID) error {
+	if !i.uuid.IsZero() {
+		return errors.New("cannot set UUID, it was already set")
+	}
+	i.uuid = v
+	return nil
+}
+
+// State getter
+func (i Incident) State() State {
 	return i.state
 }
 
 // SetState ...
 func (i *Incident) SetState(s State) error {
+	// TODO add state machine and checks
 	i.state = s
 	return nil
 }

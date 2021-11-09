@@ -12,23 +12,23 @@ type CreatedUpdated struct {
 	updatedInfo
 }
 
-// GetCreatedBy ...
-func (o CreatedUpdated) GetCreatedBy() ref.ExternalUserUUID {
+// CreatedBy ...
+func (o CreatedUpdated) CreatedBy() ref.ExternalUserUUID {
 	return o.createdBy
 }
 
-// GetCreatedAt ...
-func (o CreatedUpdated) GetCreatedAt() DateTime {
+// CreatedAt ...
+func (o CreatedUpdated) CreatedAt() DateTime {
 	return o.createdAt
 }
 
-// GetUpdatedBy ...
-func (o CreatedUpdated) GetUpdatedBy() ref.ExternalUserUUID {
+// UpdatedBy ...
+func (o CreatedUpdated) UpdatedBy() ref.ExternalUserUUID {
 	return o.updatedBy
 }
 
-// GetUpdatedAt ...
-func (o CreatedUpdated) GetUpdatedAt() DateTime {
+// UpdatedAt ...
+func (o CreatedUpdated) UpdatedAt() DateTime {
 	return o.updatedAt
 }
 

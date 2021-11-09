@@ -11,6 +11,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -118,21 +119,21 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		}
 
 		createdInfo := api.CreatedInfo{
-			CreatedAt: api.DateTime(asset.CreatedUpdated.GetCreatedAt()),
-			CreatedBy: asset.CreatedUpdated.GetCreatedBy().String(),
+			CreatedAt: api.DateTime(asset.CreatedUpdated.CreatedAt()),
+			CreatedBy: asset.CreatedUpdated.CreatedBy().String(),
 		}
 
 		updatedInfo := api.UpdatedInfo{
-			UpdatedAt: api.DateTime(asset.CreatedUpdated.GetUpdatedAt()),
-			UpdatedBy: asset.CreatedUpdated.GetUpdatedBy().String(),
+			UpdatedAt: api.DateTime(asset.CreatedUpdated.UpdatedAt()),
+			UpdatedBy: asset.CreatedUpdated.UpdatedBy().String(),
 		}
 
 		inc := api.Incident{
-			UUID:             asset.UUID.String(),
+			UUID:             asset.UUID().String(),
 			ExternalID:       asset.ExternalID,
 			ShortDescription: asset.ShortDescription,
 			Description:      asset.Description,
-			State:            asset.GetState(),
+			State:            asset.State(),
 			CreatedUpdated: api.CreatedUpdated{
 				CreatedInfo: createdInfo,
 				UpdatedInfo: updatedInfo,
@@ -140,5 +141,41 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		}
 
 		s.presenter.WriteJSON(w, inc)
+	}
+}
+
+// swagger:route GET /incidents incidents ListIncidents
+// Returns a list of incidents
+// responses:
+//	200: incidentListResponse
+//	400: errorResponse400
+//  401: errorResponse401
+//  403: errorResponse403
+
+// ListIncidents returns handler for listing incidents
+func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		channelID, err := s.assertChannelID(w, r)
+		if err != nil {
+			return
+		}
+
+		list, err := s.incidentService.ListIncidents(r.Context(), channelID)
+		if err != nil {
+			var httpError *repository.Error
+			if errors.As(err, &httpError) {
+				s.logger.Error("Repository error", zap.Error(err))
+				s.presenter.WriteError(w, err.Error(), httpError.StatusCode())
+				return
+			}
+
+			// TODO
+
+			s.logger.Error("ListIncidents handler failed", zap.Error(err))
+			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		s.presenter.WriteJSON(w, list)
 	}
 }

@@ -47,6 +47,20 @@ type incidentResponseWrapper struct {
 	}
 }
 
+// A list of incidents
+// swagger:response incidentListResponse
+type incidentListResponseWrapper struct {
+	// in: body
+	Body struct {
+		// required: true
+		Result []struct {
+			Incident
+			Links HypermediaLinks `json:"_links"`
+		} `json:"result"`
+		Links HypermediaLinks `json:"_links"`
+	}
+}
+
 // Created
 // swagger:response incidentCreatedResponse
 type incidentCreatedResponseWrapper struct {

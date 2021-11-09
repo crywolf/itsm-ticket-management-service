@@ -1,4 +1,4 @@
-package rest
+package presenter
 
 import (
 	"encoding/json"
