@@ -67,18 +67,9 @@ definitions:
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   HypermediaLinks:
+    additionalProperties:
+      type: object
     description: HypermediaLinks contain links to other API calls
-    properties:
-      self:
-        properties:
-          href:
-            format: uri
-            type: string
-            x-go-name: Href
-        type: object
-        x-go-name: Self
-    required:
-    - self
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   Incident:
@@ -130,6 +121,59 @@ definitions:
     - uuid
     - short_description
     - state
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  IncidentResponse:
+    properties:
+      _links:
+        $ref: '#/definitions/HypermediaLinks'
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+      description:
+        type: string
+        x-go-name: Description
+      external_id:
+        description: ID in external system
+        type: string
+        x-go-name: ExternalID
+      short_description:
+        type: string
+        x-go-name: ShortDescription
+      state:
+        description: State of the ticket
+        example: new
+        format: string
+        type: string
+        x-go-name: State
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+      uuid:
+        format: uuid
+        type: string
+        x-go-name: UUID
+    required:
+    - created_at
+    - created_by
+    - uuid
+    - short_description
+    - state
+    title: IncidentResponse ...
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   State:
@@ -335,60 +379,9 @@ responses:
           $ref: '#/definitions/HypermediaLinks'
         result:
           items:
-            properties:
-              _links:
-                $ref: '#/definitions/HypermediaLinks'
-              created_at:
-                description: Time when the resource was created
-                format: date-time
-                type: string
-                x-go-name: CreatedAt
-              created_by:
-                description: Reference to the user who created this resource
-                format: uuid
-                type: string
-                x-go-name: CreatedBy
-              description:
-                type: string
-                x-go-name: Description
-              external_id:
-                description: ID in external system
-                type: string
-                x-go-name: ExternalID
-              short_description:
-                type: string
-                x-go-name: ShortDescription
-              state:
-                description: State of the ticket
-                example: new
-                format: string
-                type: string
-                x-go-name: State
-              updated_at:
-                description: Time when the resource was updated
-                format: date-time
-                type: string
-                x-go-name: UpdatedAt
-              updated_by:
-                description: Reference to the user who updated this resource
-                format: uuid
-                type: string
-                x-go-name: UpdatedBy
-              uuid:
-                format: uuid
-                type: string
-                x-go-name: UUID
-            required:
-            - created_at
-            - created_by
-            - uuid
-            - short_description
-            - state
-            type: object
+            $ref: '#/definitions/IncidentResponse'
           type: array
           x-go-name: Result
-      required:
-      - result
       type: object
   incidentResponse:
     description: Data structure representing a single incident

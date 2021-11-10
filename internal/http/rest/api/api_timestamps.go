@@ -1,9 +1,5 @@
 package api
 
-// DateTime is RFC3339 time format
-// swagger:strfmt date-time
-type DateTime string
-
 // CreatedUpdated contains timestamps and user who created/updated the resource
 type CreatedUpdated struct {
 	CreatedInfo
@@ -14,7 +10,8 @@ type CreatedUpdated struct {
 type CreatedInfo struct {
 	// Time when the resource was created
 	// required: true
-	CreatedAt DateTime `json:"created_at"`
+	// swagger:strfmt date-time
+	CreatedAt string `json:"created_at"`
 
 	// Reference to the user who created this resource
 	// required: true
@@ -25,7 +22,8 @@ type CreatedInfo struct {
 // UpdatedInfo contains timestamp and user who updated the resource
 type UpdatedInfo struct {
 	// Time when the resource was updated
-	UpdatedAt DateTime `json:"updated_at"`
+	// swagger:strfmt date-time
+	UpdatedAt string `json:"updated_at"`
 
 	// Reference to the user who updated this resource
 	// swagger:strfmt uuid

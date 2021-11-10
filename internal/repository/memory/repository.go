@@ -54,48 +54,15 @@ func (m *RepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc i
 // GetIncident returns the incident with given ID from the repository
 func (m *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
 	var inc incident.Incident
+	var err error
 
 	for i := range m.incidents {
 		if m.incidents[i].ID == ID.String() {
-			si := m.incidents[i] // stored incident
+			storedInc := m.incidents[i]
 
-			err := inc.SetUUID(ref.UUID(si.ID))
+			inc, err = m.convertStoredToDomainIncident(storedInc)
 			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			inc.ExternalID = si.ExternalID
-			inc.ShortDescription = si.ShortDescription
-			inc.Description = si.Description
-
-			state, err := incident.NewStateFromString(si.State)
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			err = inc.SetState(state)
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			err = inc.CreatedUpdated.SetCreatedBy(ref.ExternalUserUUID(si.CreatedBy))
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			err = inc.CreatedUpdated.SetCreatedAt(types.DateTime(si.CreatedAt))
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			err = inc.CreatedUpdated.SetUpdatedBy(ref.ExternalUserUUID(si.UpdatedBy))
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
-			}
-
-			err = inc.CreatedUpdated.SetUpdatedAt(types.DateTime(si.UpdatedAt))
-			if err != nil {
-				return inc, errors.Wrap(err, "error loading incident from the repository")
+				return incident.Incident{}, err
 			}
 
 			return inc, nil
@@ -109,50 +76,49 @@ func (m *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID re
 func (m *RepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]incident.Incident, error) {
 	var list []incident.Incident
 
-	for _, si := range m.incidents {
-		inc := incident.Incident{
-			ExternalID:       si.ExternalID,
-			Description:      si.Description,
-			ShortDescription: si.ShortDescription,
-		}
-
-		err := inc.SetUUID(ref.UUID(si.ID))
+	for _, storedInc := range m.incidents {
+		inc, err := m.convertStoredToDomainIncident(storedInc)
 		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		state, err := incident.NewStateFromString(si.State)
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		err = inc.SetState(state)
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		err = inc.CreatedUpdated.SetCreatedBy(ref.ExternalUserUUID(si.CreatedBy))
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		err = inc.CreatedUpdated.SetCreatedAt(types.DateTime(si.CreatedAt))
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		err = inc.CreatedUpdated.SetUpdatedBy(ref.ExternalUserUUID(si.UpdatedBy))
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
-		}
-
-		err = inc.CreatedUpdated.SetUpdatedAt(types.DateTime(si.UpdatedAt))
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading incident from the repository")
+			return nil, err
 		}
 
 		list = append(list, inc)
 	}
 
 	return list, nil
+}
+
+func (m RepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {
+	var inc incident.Incident
+
+	err := inc.SetUUID(ref.UUID(storedInc.ID))
+	if err != nil {
+		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+	}
+
+	inc.ExternalID = storedInc.ExternalID
+	inc.ShortDescription = storedInc.ShortDescription
+	inc.Description = storedInc.Description
+
+	state, err := incident.NewStateFromString(storedInc.State)
+	if err != nil {
+		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+	}
+
+	err = inc.SetState(state)
+	if err != nil {
+		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+	}
+
+	err = inc.CreatedUpdated.SetCreated(ref.ExternalUserUUID(storedInc.CreatedBy), types.DateTime(storedInc.CreatedAt))
+	if err != nil {
+		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+	}
+
+	err = inc.CreatedUpdated.SetUpdated(ref.ExternalUserUUID(storedInc.UpdatedBy), types.DateTime(storedInc.UpdatedAt))
+	if err != nil {
+		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+	}
+
+	return inc, nil
 }

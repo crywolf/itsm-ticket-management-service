@@ -47,14 +47,14 @@ type AuthorizationHeaders struct {
 	ChannelID ref.ChannelID `json:"channel-id"`
 }
 
-// HypermediaLinks contain links to other API calls
-type HypermediaLinks struct {
-	// required: true
-	Self struct {
-		// swagger:strfmt uri
-		Href string `json:"href"`
-	} `json:"self"`
+// ActionLink represents HAL hypermedia links
+type ActionLink struct {
+	Name string
+	Href string
 }
+
+// HypermediaLinks contain links to other API calls
+type HypermediaLinks map[string]interface{}
 
 // No content
 // swagger:response deleteNoContentResponse

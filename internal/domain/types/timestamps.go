@@ -12,27 +12,48 @@ type CreatedUpdated struct {
 	updatedInfo
 }
 
-// CreatedBy ...
+// CreatedBy getter
 func (o CreatedUpdated) CreatedBy() ref.ExternalUserUUID {
 	return o.createdBy
 }
 
-// CreatedAt ...
+// CreatedAt getter
 func (o CreatedUpdated) CreatedAt() DateTime {
 	return o.createdAt
 }
 
-// UpdatedBy ...
+// UpdatedBy getter
 func (o CreatedUpdated) UpdatedBy() ref.ExternalUserUUID {
 	return o.updatedBy
 }
 
-// UpdatedAt ...
+// UpdatedAt getter
 func (o CreatedUpdated) UpdatedAt() DateTime {
 	return o.updatedAt
 }
 
-// SetCreatedBy returns error if createdBy was already set
+// SetCreated sets info about the user and time when the resource was created. It  returns error if createdBy or createdAt was already set
+func (o *CreatedUpdated) SetCreated(userID ref.ExternalUserUUID, dateTime DateTime) error {
+	if err := o.SetCreatedBy(userID); err != nil {
+		return err
+	}
+	if !o.createdAt.IsZero() {
+		return errors.New("cannot set CreatedAt, it was already set")
+	}
+	o.createdAt = dateTime
+	return nil
+}
+
+// SetUpdated sets info about the user and time when the resource was updated
+func (o *CreatedUpdated) SetUpdated(userID ref.ExternalUserUUID, dateTime DateTime) error {
+	if err := o.SetUpdatedBy(userID); err != nil {
+		return err
+	}
+	o.updatedAt = dateTime
+	return nil
+}
+
+// SetCreatedBy sets info about the user who crested this resource. It returns error if createdBy was already set
 func (o *CreatedUpdated) SetCreatedBy(userID ref.ExternalUserUUID) error {
 	if !o.createdBy.IsZero() {
 		return errors.New("cannot set CreatedBy, it was already set")
@@ -41,25 +62,9 @@ func (o *CreatedUpdated) SetCreatedBy(userID ref.ExternalUserUUID) error {
 	return nil
 }
 
-// SetCreatedAt returns error if createdAt was already set
-func (o *CreatedUpdated) SetCreatedAt(dateTime DateTime) error {
-	if !o.createdAt.IsZero() {
-		return errors.New("cannot set CreatedAt, it was already set")
-	}
-
-	o.createdAt = dateTime
-	return nil
-}
-
-// SetUpdatedBy ...
+// SetUpdatedBy sets info about the user who updated this resource. It returns error if createdBy was already set
 func (o *CreatedUpdated) SetUpdatedBy(userID ref.ExternalUserUUID) error {
 	o.updatedBy = userID
-	return nil
-}
-
-// SetUpdatedAt ...
-func (o *CreatedUpdated) SetUpdatedAt(dateTime DateTime) error {
-	o.updatedAt = dateTime
 	return nil
 }
 

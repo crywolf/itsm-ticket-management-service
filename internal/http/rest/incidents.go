@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
@@ -71,9 +73,9 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		assetURI := fmt.Sprintf("%s/%s/%s", s.ExternalLocationAddress, "incidents", newID)
+		resourceURI := fmt.Sprintf("%s/%s/%s", s.ExternalLocationAddress, "incidents", newID)
 
-		w.Header().Set("Location", assetURI)
+		w.Header().Set("Location", resourceURI)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 	}
@@ -104,7 +106,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		asset, err := s.incidentService.GetIncident(r.Context(), channelID, ref.UUID(id))
+		inc, err := s.incidentService.GetIncident(r.Context(), channelID, ref.UUID(id))
 		if err != nil {
 			var httpError *repository.Error
 			if errors.As(err, &httpError) {
@@ -118,29 +120,9 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		createdInfo := api.CreatedInfo{
-			CreatedAt: api.DateTime(asset.CreatedUpdated.CreatedAt()),
-			CreatedBy: asset.CreatedUpdated.CreatedBy().String(),
-		}
+		self := s.ExternalLocationAddress + r.URL.String()
 
-		updatedInfo := api.UpdatedInfo{
-			UpdatedAt: api.DateTime(asset.CreatedUpdated.UpdatedAt()),
-			UpdatedBy: asset.CreatedUpdated.UpdatedBy().String(),
-		}
-
-		inc := api.Incident{
-			UUID:             asset.UUID().String(),
-			ExternalID:       asset.ExternalID,
-			ShortDescription: asset.ShortDescription,
-			Description:      asset.Description,
-			State:            asset.State(),
-			CreatedUpdated: api.CreatedUpdated{
-				CreatedInfo: createdInfo,
-				UpdatedInfo: updatedInfo,
-			},
-		}
-
-		s.presenter.WriteJSON(w, inc)
+		s.presenter.WriteIncident(w, inc, incidentRoutesToHypermedia(s.ExternalLocationAddress), self)
 	}
 }
 
@@ -169,13 +151,26 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 				return
 			}
 
-			// TODO
-
 			s.logger.Error("ListIncidents handler failed", zap.Error(err))
 			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		s.presenter.WriteJSON(w, list)
+		self := s.ExternalLocationAddress + r.URL.String()
+
+		s.presenter.WriteIncidentList(w, list, incidentRoutesToHypermedia(s.ExternalLocationAddress), self)
 	}
 }
+
+func incidentRoutesToHypermedia(serverAddr string) presenters.HypermediaActions {
+	acts := presenters.HypermediaActions{}
+
+	acts[incident.ActionCancel] = api.ActionLink{Name: "CancelIncident", Href: serverAddr + cancelIncidentRoute}
+	acts[incident.ActionStartWorking] = api.ActionLink{Name: "IncidentStartWorking", Href: serverAddr + incidentStartWorkingRoute}
+
+	return acts
+}
+
+const cancelIncidentRoute = "/incidents/{uuid}/cancel"
+
+const incidentStartWorkingRoute = "/incidents/{uuid}/start_working"

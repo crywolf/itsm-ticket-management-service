@@ -8,7 +8,7 @@ import (
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenter"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ type Server struct {
 	//userService             usersvc.Service
 	incidentService incidentsvc.IncidentService
 	//payloadValidator        validation.PayloadValidator
-	presenter               presenter.Presenter
+	presenter               presenters.Presenter
 	ExternalLocationAddress string
 }
 
@@ -57,10 +57,10 @@ func NewServer(cfg Config) *Server {
 		//userService:             cfg.UserService,
 		incidentService: cfg.IncidentService,
 		//payloadValidator:        cfg.PayloadValidator,
-		presenter:               presenter.NewPresenter(cfg.Logger, cfg.ExternalLocationAddress),
 		ExternalLocationAddress: cfg.ExternalLocationAddress,
 	}
 	s.routes()
+	s.presenters()
 
 	return s
 }

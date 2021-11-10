@@ -25,7 +25,7 @@ func main() {
 	r := httprouter.New()
 
 	// API documentation
-	opts := middleware.RedocOpts{Path: "/", SpecURL: "/swagger.yaml", Title: "Commenting service API documentation"}
+	opts := middleware.RedocOpts{Path: "/", SpecURL: "/swagger.yaml", Title: "Ticket management service API documentation"}
 	docsHandler := middleware.Redoc(opts, nil)
 	// handlers for API documentation
 	r.Handler(http.MethodGet, "/", docsHandler)

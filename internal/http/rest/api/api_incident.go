@@ -37,14 +37,26 @@ type CreateIncidentParams struct {
 	Description string `json:"description,omitempty"`
 }
 
+// IncidentResponse ...
+type IncidentResponse struct {
+	Incident
+	Links HypermediaLinks `json:"_links,omitempty"`
+}
+
 // Data structure representing a single incident
 // swagger:response incidentResponse
 type incidentResponseWrapper struct {
 	// in: body
 	Body struct {
-		Incident
-		Links HypermediaLinks `json:"_links"`
+		IncidentResponse
 	}
+}
+
+// IncidentListResponse ...
+type IncidentListResponse struct {
+	Result []IncidentResponse `json:"result"`
+	// example: {self:{href:example.com}}
+	Links HypermediaLinks `json:"_links,omitempty"`
 }
 
 // A list of incidents
@@ -52,12 +64,7 @@ type incidentResponseWrapper struct {
 type incidentListResponseWrapper struct {
 	// in: body
 	Body struct {
-		// required: true
-		Result []struct {
-			Incident
-			Links HypermediaLinks `json:"_links"`
-		} `json:"result"`
-		Links HypermediaLinks `json:"_links"`
+		IncidentListResponse
 	}
 }
 
