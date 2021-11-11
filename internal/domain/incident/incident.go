@@ -58,12 +58,13 @@ func (a AllowedAction) String() string {
 
 // AllowedActions values
 const (
-	ActionCancel       AllowedAction = "CancelIncident"
-	ActionStartWorking AllowedAction = "IncidentStartWorking"
+	ActionCancel       AllowedAction = "Cancel"
+	ActionStartWorking AllowedAction = "StartWorking"
 )
 
 // AllowedActions returns list of actions that can be performed with the incident according to its state and other conditions
 func (i Incident) AllowedActions() []AllowedAction {
+	// TODO - this is just for testing
 	var acts []AllowedAction
 	acts = append(acts, ActionCancel, ActionStartWorking)
 	return acts

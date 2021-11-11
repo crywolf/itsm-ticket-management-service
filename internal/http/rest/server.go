@@ -23,7 +23,7 @@ type Server struct {
 	//userService             usersvc.Service
 	incidentService incidentsvc.IncidentService
 	//payloadValidator        validation.PayloadValidator
-	presenter               presenters.Presenter
+	presenter               presenters.IncidentPresenter
 	ExternalLocationAddress string
 }
 

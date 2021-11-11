@@ -120,9 +120,9 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		self := s.ExternalLocationAddress + r.URL.String()
+		hypermedia := NewIncidentHypermedia(s.ExternalLocationAddress, r.URL.String())
 
-		s.presenter.WriteIncident(w, inc, incidentRoutesToHypermedia(s.ExternalLocationAddress), self)
+		s.presenter.WriteIncident(w, inc, hypermedia)
 	}
 }
 
@@ -156,21 +156,35 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		self := s.ExternalLocationAddress + r.URL.String()
+		hypermedia := NewIncidentHypermedia(s.ExternalLocationAddress, r.URL.String())
 
-		s.presenter.WriteIncidentList(w, list, incidentRoutesToHypermedia(s.ExternalLocationAddress), self)
+		s.presenter.WriteIncidentList(w, list, hypermedia)
 	}
 }
 
-func incidentRoutesToHypermedia(serverAddr string) presenters.HypermediaActions {
-	acts := presenters.HypermediaActions{}
+// IncidentHypermedia implements hypermedia for incident
+type IncidentHypermedia struct {
+	*presenters.BaseHypermedia
+}
 
-	acts[incident.ActionCancel] = api.ActionLink{Name: "CancelIncident", Href: serverAddr + cancelIncidentRoute}
-	acts[incident.ActionStartWorking] = api.ActionLink{Name: "IncidentStartWorking", Href: serverAddr + incidentStartWorkingRoute}
+// NewIncidentHypermedia returns new hypermedia object for incident
+func NewIncidentHypermedia(serverAddr, currentURL string) IncidentHypermedia {
+	return IncidentHypermedia{
+		BaseHypermedia: presenters.NewBaseHypermedia(serverAddr, currentURL),
+	}
+}
+
+// RoutesToHypermediaActionLinks maps domain actions to hypermedia action links
+func (h IncidentHypermedia) RoutesToHypermediaActionLinks() presenters.HypermediaActionLinks {
+	acts := presenters.HypermediaActionLinks{}
+
+	acts[incident.ActionCancel.String()] = api.ActionLink{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
+	acts[incident.ActionStartWorking.String()] = api.ActionLink{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}
 
 	return acts
 }
 
+// TODO implement routes - they are just for testing at the moment
 const cancelIncidentRoute = "/incidents/{uuid}/cancel"
 
 const incidentStartWorkingRoute = "/incidents/{uuid}/start_working"
