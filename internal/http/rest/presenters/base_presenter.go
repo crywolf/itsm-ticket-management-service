@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +19,7 @@ func NewBasePresenter(logger *zap.SugaredLogger, serverAddr string) *BasePresent
 	}
 }
 
-// BasePresenter should be used in all derived presenters. They should use this one via composition.
+// BasePresenter must be included in all derived presenters via object composition
 type BasePresenter struct {
 	logger     *zap.SugaredLogger
 	serverAddr string
@@ -25,6 +28,22 @@ type BasePresenter struct {
 // WriteError replies to the request with the specified error message and HTTP code.
 func (p BasePresenter) WriteError(w http.ResponseWriter, error string, code int) {
 	p.sendErrorJSON(w, error, code)
+}
+
+func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Mapper, domainObject hypermedia.ActionsMapper) api.HypermediaLinks {
+	hypermediaLinks := api.HypermediaLinks{}
+
+	actions := hypermediaMapper.RoutesToHypermediaActionLinks()
+	allowedActions := domainObject.AllowedActions()
+	for _, action := range allowedActions {
+		link := actions[action]
+		href := strings.ReplaceAll(link.Href, "{uuid}", domainObject.UUID().String())
+		hypermediaLinks[link.Name] = map[string]string{
+			"href": href,
+		}
+	}
+
+	return hypermediaLinks
 }
 
 // sendErrorJSON replies to the request with the specified error message and HTTP code.

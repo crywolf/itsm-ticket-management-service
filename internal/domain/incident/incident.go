@@ -63,9 +63,9 @@ const (
 )
 
 // AllowedActions returns list of actions that can be performed with the incident according to its state and other conditions
-func (i Incident) AllowedActions() []AllowedAction {
+func (i Incident) AllowedActions() []string {
 	// TODO - this is just for testing
-	var acts []AllowedAction
-	acts = append(acts, ActionCancel, ActionStartWorking)
+	var acts []string
+	acts = append(acts, ActionCancel.String(), ActionStartWorking.String())
 	return acts
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
@@ -120,9 +120,9 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		hypermedia := NewIncidentHypermedia(s.ExternalLocationAddress, r.URL.String())
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
 
-		s.presenter.WriteIncident(w, inc, hypermedia)
+		s.presenter.WriteIncident(w, inc, hypermediaMapper)
 	}
 }
 
@@ -156,27 +156,27 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		hypermedia := NewIncidentHypermedia(s.ExternalLocationAddress, r.URL.String())
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
 
-		s.presenter.WriteIncidentList(w, list, hypermedia)
+		s.presenter.WriteIncidentList(w, list, hypermediaMapper)
 	}
 }
 
-// IncidentHypermedia implements hypermedia for incident
-type IncidentHypermedia struct {
-	*presenters.BaseHypermedia
+// IncidentHypermediaMapper implements hypermedia mapping functionality for incident resource
+type IncidentHypermediaMapper struct {
+	*hypermedia.BaseHypermediaMapper
 }
 
-// NewIncidentHypermedia returns new hypermedia object for incident
-func NewIncidentHypermedia(serverAddr, currentURL string) IncidentHypermedia {
-	return IncidentHypermedia{
-		BaseHypermedia: presenters.NewBaseHypermedia(serverAddr, currentURL),
+// NewIncidentHypermediaMapper returns new hypermedia mapper for incident resource
+func NewIncidentHypermediaMapper(serverAddr, currentURL string) IncidentHypermediaMapper {
+	return IncidentHypermediaMapper{
+		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL),
 	}
 }
 
-// RoutesToHypermediaActionLinks maps domain actions to hypermedia action links
-func (h IncidentHypermedia) RoutesToHypermediaActionLinks() presenters.HypermediaActionLinks {
-	acts := presenters.HypermediaActionLinks{}
+// RoutesToHypermediaActionLinks maps domain object actions to hypermedia action links
+func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.ActionLinks {
+	acts := hypermedia.ActionLinks{}
 
 	acts[incident.ActionCancel.String()] = api.ActionLink{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
 	acts[incident.ActionStartWorking.String()] = api.ActionLink{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}

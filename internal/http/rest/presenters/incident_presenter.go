@@ -3,10 +3,10 @@ package presenters
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +21,7 @@ type incidentPresenter struct {
 	*BasePresenter
 }
 
-func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident incident.Incident, hypermedia Hypermedia) {
+func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident incident.Incident, hypermediaMapper hypermedia.Mapper) {
 	createdInfo := api.CreatedInfo{
 		CreatedAt: incident.CreatedUpdated.CreatedAt().String(),
 		CreatedBy: incident.CreatedUpdated.CreatedBy().String(),
@@ -44,9 +44,9 @@ func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident inciden
 		},
 	}
 
-	incHypermedia := p.incidentHypermediaLinks(hypermedia, incident)
+	incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, incident)
 	incHypermedia["self"] = map[string]string{
-		"href": hypermedia.Self(),
+		"href": hypermediaMapper.SelfLink(),
 	}
 
 	incResp := api.IncidentResponse{
@@ -57,10 +57,10 @@ func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident inciden
 	p.encodeJSON(w, incResp)
 }
 
-func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incList []incident.Incident, hypermedia Hypermedia) {
+func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incidentList []incident.Incident, hypermediaMapper hypermedia.Mapper) {
 	var apiList []api.IncidentResponse
 
-	for _, inc := range incList {
+	for _, inc := range incidentList {
 		createdInfo := api.CreatedInfo{
 			CreatedAt: inc.CreatedUpdated.CreatedAt().String(),
 			CreatedBy: inc.CreatedUpdated.CreatedBy().String(),
@@ -83,7 +83,7 @@ func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incList []in
 			},
 		}
 
-		incHypermedia := p.incidentHypermediaLinks(hypermedia, inc)
+		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
 		incHypermedia["self"] = map[string]string{
 			"href": fmt.Sprintf("%s/%s/%s", p.serverAddr, "incidents", inc.UUID()),
 		}
@@ -97,7 +97,7 @@ func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incList []in
 
 	listLinks := api.HypermediaLinks{
 		"self": map[string]string{
-			"href": hypermedia.Self(),
+			"href": hypermediaMapper.SelfLink(),
 		},
 	}
 
@@ -107,21 +107,4 @@ func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incList []in
 	}
 
 	p.encodeJSON(w, resp)
-}
-
-func (p incidentPresenter) incidentHypermediaLinks(hypermedia Hypermedia, inc incident.Incident) api.HypermediaLinks {
-	hypermediaLinks := api.HypermediaLinks{}
-
-	actions := hypermedia.RoutesToHypermediaActionLinks()
-	allowedActions := inc.AllowedActions()
-	for _, action := range allowedActions {
-		link := actions[action.String()]
-		href := strings.ReplaceAll(link.Href, "{uuid}", inc.UUID().String())
-
-		hypermediaLinks[link.Name] = map[string]string{
-			"href": href,
-		}
-	}
-
-	return hypermediaLinks
 }
