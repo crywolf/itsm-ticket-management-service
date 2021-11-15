@@ -2,10 +2,12 @@ package presenters
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"go.uber.org/zap"
@@ -25,9 +27,35 @@ type BasePresenter struct {
 	serverAddr string
 }
 
-// WriteError replies to the request with the specified error message and HTTP code.
-func (p BasePresenter) WriteError(w http.ResponseWriter, error string, code int) {
-	p.sendErrorJSON(w, error, code)
+// WriteError replies to the request with the specified error message and HTTP code
+func (p BasePresenter) WriteError(w http.ResponseWriter, msg string, err error) {
+	status := http.StatusInternalServerError
+
+	var dErr *domain.Error
+	if !errors.As(err, &dErr) {
+		msg = fmt.Sprintf("internal error: %s", err.Error())
+	} else {
+		if msg == "" {
+			msg = dErr.Error()
+		}
+
+		switch dErr.Code() {
+		case domain.ErrorCodeInvalidArgument:
+			status = http.StatusBadRequest
+		case domain.ErrorCodeNotFound:
+			status = http.StatusNotFound
+		case domain.ErrorCodeUserNotAuthorized:
+			status = http.StatusUnauthorized
+		case domain.ErrorCodeActionForbidden:
+			status = http.StatusForbidden
+		case domain.ErrorCodeUnknown:
+			fallthrough
+		default:
+			status = http.StatusInternalServerError
+		}
+	}
+
+	p.sendErrorJSON(w, msg, status)
 }
 
 func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Mapper, domainObject hypermedia.ActionsMapper) api.HypermediaLinks {
@@ -52,8 +80,13 @@ func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Map
 // The error message should be plain text.
 func (p BasePresenter) sendErrorJSON(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("Content-Type", "application/json")
+	errorJSON, err := json.Marshal(error)
+	if err != nil {
+		p.logger.Errorw("sending json error", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	w.WriteHeader(code)
-	errorJSON, _ := json.Marshal(error)
 	_, _ = fmt.Fprintf(w, `{"error":%s}`+"\n", errorJSON)
 }
 
@@ -63,9 +96,9 @@ func (p BasePresenter) encodeJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(v)
 	if err != nil {
-		eMsg := "could not encode JSON response"
-		p.logger.Errorw(eMsg, "error", err)
-		p.WriteError(w, eMsg, http.StatusInternalServerError)
+		err = domain.WrapErrorf(err, domain.ErrorCodeUnknown, "could not encode JSON response")
+		p.logger.Errorw("encoding json", "error", err)
+		p.sendErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

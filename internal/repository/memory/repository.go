@@ -4,14 +4,13 @@ import (
 	"context"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
-	"github.com/pkg/errors"
 )
 
 // Clock provides Now method to enable mocking
@@ -69,7 +68,7 @@ func (m *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID re
 		}
 	}
 
-	return incident.Incident{}, repository.NewError(ErrNotFound.Error(), http.StatusNotFound)
+	return incident.Incident{}, domain.WrapErrorf(ErrNotFound, domain.ErrorCodeNotFound, "repo GetIncident")
 }
 
 // ListIncidents returns the list of incidents from the repository
@@ -90,10 +89,11 @@ func (m *RepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]
 
 func (m RepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {
 	var inc incident.Incident
+	errMsg := "error loading incident from the repository"
 
 	err := inc.SetUUID(ref.UUID(storedInc.ID))
 	if err != nil {
-		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
 	inc.ExternalID = storedInc.ExternalID
@@ -102,22 +102,22 @@ func (m RepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (inc
 
 	state, err := incident.NewStateFromString(storedInc.State)
 	if err != nil {
-		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
 	err = inc.SetState(state)
 	if err != nil {
-		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
 	err = inc.CreatedUpdated.SetCreated(ref.ExternalUserUUID(storedInc.CreatedBy), types.DateTime(storedInc.CreatedAt))
 	if err != nil {
-		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
 	err = inc.CreatedUpdated.SetUpdated(ref.ExternalUserUUID(storedInc.UpdatedBy), types.DateTime(storedInc.UpdatedAt))
 	if err != nil {
-		return incident.Incident{}, errors.Wrap(err, "error loading incident from the repository")
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
 	return inc, nil

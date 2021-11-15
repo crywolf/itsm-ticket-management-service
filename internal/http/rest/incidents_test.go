@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
@@ -23,6 +24,42 @@ func TestGetIncidentHandler(t *testing.T) {
 
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
+
+	t.Run("when incident does not exist", func(t *testing.T) {
+		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
+
+		incidentSvc := new(mocks.IncidentServiceMock)
+		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID)).
+			Return(incident.Incident{}, domain.NewErrorf(domain.ErrorCodeNotFound, "error from repository"))
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			IncidentService:         incidentSvc,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		req := httptest.NewRequest("GET", "/incidents/"+uuid, nil)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"incident not found"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
 
 	t.Run("when incident exists", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"

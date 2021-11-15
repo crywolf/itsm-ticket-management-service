@@ -2,10 +2,10 @@ package rest
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
@@ -59,8 +59,8 @@ func NewServer(cfg Config) *Server {
 		//payloadValidator:        cfg.PayloadValidator,
 		ExternalLocationAddress: cfg.ExternalLocationAddress,
 	}
-	s.routes()
 	s.presenters()
+	s.routes()
 
 	return s
 }
@@ -96,17 +96,17 @@ func channelIDFromRequest(r *http.Request) (string, bool) {
 func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.ChannelID, error) {
 	channelID, ok := channelIDFromRequest(r)
 	if !ok {
-		eMsg := "could not get channel ID from context"
-		s.logger.Errorw("assertChannelID", "error", eMsg)
-		s.presenter.WriteError(w, eMsg, http.StatusInternalServerError)
-		return "", errors.New(eMsg)
+		err := domain.NewErrorf(domain.ErrorCodeUnknown, "could not get channel ID from context")
+		s.logger.Errorw("assertChannelID", "error", err)
+		s.presenter.WriteError(w, "cannot determine channel ID", err)
+		return "", err
 	}
 
 	if channelID == "" {
-		eMsg := "empty channel ID in context"
-		s.logger.Errorw("assertChannelID", "error", eMsg)
-		s.presenter.WriteError(w, "'channel-id' header missing or invalid", http.StatusUnauthorized)
-		return "", errors.New(eMsg)
+		err := domain.NewErrorf(domain.ErrorCodeUserNotAuthorized, "empty channel ID in context")
+		s.logger.Errorw("assertChannelID", "error", err)
+		s.presenter.WriteError(w, "'channel-id' header missing or invalid", err)
+		return "", err
 	}
 
 	return ref.ChannelID(channelID), nil

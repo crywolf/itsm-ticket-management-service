@@ -12,7 +12,7 @@ type ErrorPresenter interface {
 	// WriteError replies to the request with the specified error message and HTTP code.
 	// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
 	// The error message should be plain text.
-	WriteError(w http.ResponseWriter, error string, code int)
+	WriteError(w http.ResponseWriter, msg string, err error)
 }
 
 // IncidentPresenter provides REST responses for incident resource

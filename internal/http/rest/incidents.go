@@ -2,18 +2,16 @@ package rest
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
 )
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -31,8 +29,9 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 		defer func() { _ = r.Body.Close() }()
 		reqBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			s.logger.Errorw("could not read request body", "error", err)
-			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
+			msg := "could not read request body"
+			s.logger.Errorw(msg, "error", err)
+			s.presenter.WriteError(w, msg, err)
 			return
 		}
 
@@ -42,7 +41,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 		if err != nil {
 			eMsg := "could not decode JSON from request"
 			s.logger.Warnw("CreateIncident handler failed", "reason", eMsg, "error", err)
-			s.presenter.WriteError(w, fmt.Sprintf("%s: %s", eMsg, err.Error()), http.StatusBadRequest)
+			s.presenter.WriteError(w, eMsg, domain.WrapErrorf(err, domain.ErrorCodeInvalidArgument, eMsg))
 			return
 		}
 
@@ -61,15 +60,8 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 
 		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, incPayload)
 		if err != nil {
-			var httpError *repository.Error
-			if errors.As(err, &httpError) {
-				s.logger.Warnw("CreateIncident handler failed", "error", err)
-				s.presenter.WriteError(w, err.Error(), httpError.StatusCode())
-				return
-			}
-
 			s.logger.Errorw("CreateIncident handler failed", "error", err)
-			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
+			s.presenter.WriteError(w, "", err)
 			return
 		}
 
@@ -95,9 +87,9 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id := params.ByName("id")
 		if id == "" {
-			eMsg := "malformed URL: missing resource ID param"
-			s.logger.Warnw("GetIncident handler failed", "error", eMsg)
-			s.presenter.WriteError(w, eMsg, http.StatusBadRequest)
+			err := domain.NewErrorf(domain.ErrorCodeInvalidArgument, "malformed URL: missing resource ID param")
+			s.logger.Errorw("GetIncident handler failed", "error", err)
+			s.presenter.WriteError(w, "", err)
 			return
 		}
 
@@ -108,20 +100,12 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 
 		inc, err := s.incidentService.GetIncident(r.Context(), channelID, ref.UUID(id))
 		if err != nil {
-			var httpError *repository.Error
-			if errors.As(err, &httpError) {
-				s.logger.Warnw("GetIncident handler failed", "ID", id, "error", err)
-				s.presenter.WriteError(w, err.Error(), httpError.StatusCode())
-				return
-			}
-
 			s.logger.Errorw("GetIncident handler failed", "ID", id, "error", err)
-			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
+			s.presenter.WriteError(w, "incident not found", err)
 			return
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
-
 		s.presenter.WriteIncident(w, inc, hypermediaMapper)
 	}
 }
@@ -144,20 +128,12 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 
 		list, err := s.incidentService.ListIncidents(r.Context(), channelID)
 		if err != nil {
-			var httpError *repository.Error
-			if errors.As(err, &httpError) {
-				s.logger.Error("Repository error", zap.Error(err))
-				s.presenter.WriteError(w, err.Error(), httpError.StatusCode())
-				return
-			}
-
-			s.logger.Error("ListIncidents handler failed", zap.Error(err))
-			s.presenter.WriteError(w, err.Error(), http.StatusInternalServerError)
+			s.logger.Errorw("ListIncidents handler failed", "error", err)
+			s.presenter.WriteError(w, "", err)
 			return
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
-
 		s.presenter.WriteIncidentList(w, list, hypermediaMapper)
 	}
 }

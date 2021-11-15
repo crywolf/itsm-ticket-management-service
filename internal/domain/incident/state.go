@@ -54,7 +54,7 @@ func (s State) String() string {
 	return s.v
 }
 
-// MarshalJSON returns Entity as the JSON encoding of Entity
+// MarshalJSON returns JSON encoded State
 func (s State) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
