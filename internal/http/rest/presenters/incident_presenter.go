@@ -21,7 +21,7 @@ type incidentPresenter struct {
 	*BasePresenter
 }
 
-func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident incident.Incident, hypermediaMapper hypermedia.Mapper) {
+func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incident.Incident, hypermediaMapper hypermedia.Mapper) {
 	createdInfo := api.CreatedInfo{
 		CreatedAt: incident.CreatedUpdated.CreatedAt().String(),
 		CreatedBy: incident.CreatedUpdated.CreatedBy().String(),
@@ -54,10 +54,10 @@ func (p incidentPresenter) WriteIncident(w http.ResponseWriter, incident inciden
 		Links:    incHypermedia,
 	}
 
-	p.encodeJSON(w, incResp)
+	p.renderJSON(w, incResp)
 }
 
-func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incidentList []incident.Incident, hypermediaMapper hypermedia.Mapper) {
+func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident, hypermediaMapper hypermedia.Mapper) {
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList {
@@ -106,5 +106,5 @@ func (p incidentPresenter) WriteIncidentList(w http.ResponseWriter, incidentList
 		Links:  listLinks,
 	}
 
-	p.encodeJSON(w, resp)
+	p.renderJSON(w, resp)
 }

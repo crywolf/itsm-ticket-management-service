@@ -2,7 +2,7 @@ package presenters
 
 import "fmt"
 
-// HTTPError represents an error that could be wrapping another error, it includes an HTTP code
+// HTTPError represents an HTTP error that could be wrapping another error, it includes an HTTP code to be sent
 type HTTPError struct {
 	orig error
 	msg  string

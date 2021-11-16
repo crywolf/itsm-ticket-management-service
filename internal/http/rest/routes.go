@@ -33,5 +33,5 @@ func (s *Server) routes() {
 // JSONNotFoundError replies to the request with the 404 page not found general error message
 // in JSON format and sets correct header and HTTP code
 func (s Server) JSONNotFoundError(w http.ResponseWriter, _ *http.Request) {
-	s.presenter.WriteError(w, "", presenters.NewErrorf(http.StatusNotFound, "404 page not found"))
+	s.presenter.RenderError(w, "", presenters.NewErrorf(http.StatusNotFound, "404 page not found"))
 }

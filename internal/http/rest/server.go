@@ -97,14 +97,14 @@ func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.Cha
 	if !ok {
 		err := presenters.NewErrorf(http.StatusInternalServerError, "could not get channel ID from context")
 		s.logger.Errorw("assertChannelID", "error", err)
-		s.presenter.WriteError(w, "cannot determine channel ID", err)
+		s.presenter.RenderError(w, "cannot determine channel ID", err)
 		return "", err
 	}
 
 	if channelID == "" {
 		err := presenters.NewErrorf(http.StatusUnauthorized, "empty channel ID in context")
 		s.logger.Errorw("assertChannelID", "error", err)
-		s.presenter.WriteError(w, "'channel-id' header missing or invalid", err)
+		s.presenter.RenderError(w, "'channel-id' header missing or invalid", err)
 		return "", err
 	}
 

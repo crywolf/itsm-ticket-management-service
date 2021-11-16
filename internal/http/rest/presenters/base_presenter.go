@@ -27,14 +27,14 @@ type BasePresenter struct {
 	serverAddr string
 }
 
-// WriteError replies to the request with the specified error message and HTTP code
-func (p BasePresenter) WriteError(w http.ResponseWriter, msg string, err error) {
+// RenderError replies to the request with the specified error message and HTTP code
+func (p BasePresenter) RenderError(w http.ResponseWriter, msg string, err error) {
 	var httpErr *HTTPError
 	if errors.As(err, &httpErr) {
 		if msg == "" {
 			msg = httpErr.Error()
 		}
-		p.sendErrorJSON(w, msg, httpErr.Code())
+		p.renderErrorJSON(w, msg, httpErr.Code())
 		return
 	}
 
@@ -64,7 +64,7 @@ func (p BasePresenter) WriteError(w http.ResponseWriter, msg string, err error) 
 		}
 	}
 
-	p.sendErrorJSON(w, msg, status)
+	p.renderErrorJSON(w, msg, status)
 }
 
 func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Mapper, domainObject hypermedia.ActionsMapper) api.HypermediaLinks {
@@ -83,11 +83,11 @@ func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Map
 	return hypermediaLinks
 }
 
-// sendErrorJSON replies to the request with the specified error message and HTTP code.
+// renderErrorJSON replies to the request with the specified error message and HTTP code.
 // It encodes error string as JSON object {"error":"error_string"} and sets correct header.
 // It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
 // The error message should be plain text.
-func (p BasePresenter) sendErrorJSON(w http.ResponseWriter, error string, code int) {
+func (p BasePresenter) renderErrorJSON(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	errorJSON, err := json.Marshal(error)
 	if err != nil {
@@ -99,15 +99,15 @@ func (p BasePresenter) sendErrorJSON(w http.ResponseWriter, error string, code i
 	_, _ = fmt.Fprintf(w, `{"error":%s}`+"\n", errorJSON)
 }
 
-// encodeJSON encodes 'v' to JSON and writes it to the 'w'. Also sets correct Content-Type header.
+// renderJSON encodes 'v' to JSON and writes it to the 'w'. Also sets correct Content-Type header.
 // It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
-func (p BasePresenter) encodeJSON(w http.ResponseWriter, v interface{}) {
+func (p BasePresenter) renderJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(v)
 	if err != nil {
 		err = domain.WrapErrorf(err, domain.ErrorCodeUnknown, "could not encode JSON response")
 		p.logger.Errorw("encoding json", "error", err)
-		p.sendErrorJSON(w, err.Error(), http.StatusInternalServerError)
+		p.renderErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
