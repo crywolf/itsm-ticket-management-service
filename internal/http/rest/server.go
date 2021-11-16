@@ -7,7 +7,6 @@ import (
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
@@ -21,10 +20,9 @@ type Server struct {
 	logger    *zap.SugaredLogger
 	//authService             auth.Service
 	//userService             usersvc.Service
-	incidentService incidentsvc.IncidentService
-	//payloadValidator        validation.PayloadValidator
-	inputPayloadConverter   converters.IncidentPayloadConverter
-	presenter               presenters.IncidentPresenter
+	incidentService         incidentsvc.IncidentService
+	inputPayloadConverters  jsonInputPayloadConverters
+	presenters              jsonPresenters
 	ExternalLocationAddress string
 }
 
@@ -35,8 +33,7 @@ type Config struct {
 	Logger    *zap.SugaredLogger
 	//AuthService             auth.Service
 	//UserService             usersvc.Service
-	IncidentService incidentsvc.IncidentService
-	//PayloadValidator        validation.PayloadValidator
+	IncidentService         incidentsvc.IncidentService
 	ExternalLocationAddress string
 }
 
@@ -100,14 +97,14 @@ func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.Cha
 	if !ok {
 		err := presenters.NewErrorf(http.StatusInternalServerError, "could not get channel ID from context")
 		s.logger.Errorw("assertChannelID", "error", err)
-		s.presenter.RenderError(w, "cannot determine channel ID", err)
+		s.presenters.base.RenderError(w, "cannot determine channel ID", err)
 		return "", err
 	}
 
 	if channelID == "" {
 		err := presenters.NewErrorf(http.StatusUnauthorized, "empty channel ID in context")
 		s.logger.Errorw("assertChannelID", "error", err)
-		s.presenter.RenderError(w, "'channel-id' header missing or invalid", err)
+		s.presenters.base.RenderError(w, "'channel-id' header missing or invalid", err)
 		return "", err
 	}
 

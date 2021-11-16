@@ -12,6 +12,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const incidentCollectionName = "incidents"
+
 func (s Server) registerIncidentRoutes() {
 	s.router.POST("/incidents", s.CreateIncident())
 	s.router.GET("/incidents/:id", s.GetIncident())
@@ -21,10 +23,10 @@ func (s Server) registerIncidentRoutes() {
 // CreateIncident returns handler for creating single incident
 func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		incPayload, err := s.inputPayloadConverter.IncidentParamsFromBody(r)
+		incPayload, err := s.inputPayloadConverters.incident.IncidentParamsFromBody(r)
 		if err != nil {
 			s.logger.Warnw("CreateIncident handler failed", "error", err)
-			s.presenter.RenderError(w, "", err)
+			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
@@ -44,7 +46,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, incPayload)
 		if err != nil {
 			s.logger.Errorw("CreateIncident handler failed", "error", err)
-			s.presenter.RenderError(w, "", err)
+			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
@@ -73,7 +75,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		if id == "" {
 			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
 			s.logger.Errorw("GetIncident handler failed", "error", err)
-			s.presenter.RenderError(w, "", err)
+			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
@@ -85,12 +87,12 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		inc, err := s.incidentService.GetIncident(r.Context(), channelID, ref.UUID(id))
 		if err != nil {
 			s.logger.Errorw("GetIncident handler failed", "ID", id, "error", err)
-			s.presenter.RenderError(w, "incident not found", err)
+			s.presenters.incident.RenderError(w, "incident not found", err)
 			return
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
-		s.presenter.RenderIncident(w, inc, hypermediaMapper)
+		s.presenters.incident.RenderIncident(w, inc, hypermediaMapper)
 	}
 }
 
@@ -113,12 +115,12 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 		list, err := s.incidentService.ListIncidents(r.Context(), channelID)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
-			s.presenter.RenderError(w, "", err)
+			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
-		s.presenter.RenderIncidentList(w, list, hypermediaMapper)
+		s.presenters.incident.RenderIncidentList(w, list, hypermediaMapper)
 	}
 }
 
