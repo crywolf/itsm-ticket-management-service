@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/julienschmidt/httprouter"
 )
@@ -39,9 +39,9 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 
 		err = json.Unmarshal(reqBody, &incPayload)
 		if err != nil {
-			eMsg := "could not decode JSON from request"
-			s.logger.Warnw("CreateIncident handler failed", "reason", eMsg, "error", err)
-			s.presenter.WriteError(w, eMsg, domain.WrapErrorf(err, domain.ErrorCodeInvalidArgument, eMsg))
+			err = presenters.WrapErrorf(err, http.StatusBadRequest, "could not decode JSON from request")
+			s.logger.Warnw("CreateIncident handler failed", "error", err)
+			s.presenter.WriteError(w, "", err)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id := params.ByName("id")
 		if id == "" {
-			err := domain.NewErrorf(domain.ErrorCodeInvalidArgument, "malformed URL: missing resource ID param")
+			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
 			s.logger.Errorw("GetIncident handler failed", "error", err)
 			s.presenter.WriteError(w, "", err)
 			return

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -12,10 +13,80 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/testutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateIncidentHandler(t *testing.T) {
+	logger, _ := testutils.NewTestLogger()
+	defer func() { _ = logger.Sync() }()
+
+	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
+	bearerToken := "some valid Bearer token"
+
+	t.Run("when request is not valid JSON", func(t *testing.T) {
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		payload := []byte(`{"invalid json request"}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("POST", "/incidents", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"could not decode JSON from request: invalid character '}' after object key"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
+	// TODO test validation - missing required field (short_description)
+
+	t.Run("when request is valid", func(t *testing.T) {
+		incidentSvc := new(mocks.IncidentServiceMock)
+		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), mock.AnythingOfType("api.CreateIncidentParams")).
+			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			IncidentService:         incidentSvc,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		payload := []byte(`{
+			"valid": "payload"
+		}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("POST", "/incidents", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Status code")
+		expectedLocation := "http://service.url/incidents/38316161-3035-4864-ad30-6231392d3433"
+		assert.Equal(t, expectedLocation, resp.Header.Get("Location"), "Location header")
+	})
+
 }
 
 func TestGetIncidentHandler(t *testing.T) {

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
@@ -96,14 +95,14 @@ func channelIDFromRequest(r *http.Request) (string, bool) {
 func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.ChannelID, error) {
 	channelID, ok := channelIDFromRequest(r)
 	if !ok {
-		err := domain.NewErrorf(domain.ErrorCodeUnknown, "could not get channel ID from context")
+		err := presenters.NewErrorf(http.StatusInternalServerError, "could not get channel ID from context")
 		s.logger.Errorw("assertChannelID", "error", err)
 		s.presenter.WriteError(w, "cannot determine channel ID", err)
 		return "", err
 	}
 
 	if channelID == "" {
-		err := domain.NewErrorf(domain.ErrorCodeUserNotAuthorized, "empty channel ID in context")
+		err := presenters.NewErrorf(http.StatusUnauthorized, "empty channel ID in context")
 		s.logger.Errorw("assertChannelID", "error", err)
 		s.presenter.WriteError(w, "'channel-id' header missing or invalid", err)
 		return "", err

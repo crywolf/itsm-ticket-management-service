@@ -29,6 +29,15 @@ type BasePresenter struct {
 
 // WriteError replies to the request with the specified error message and HTTP code
 func (p BasePresenter) WriteError(w http.ResponseWriter, msg string, err error) {
+	var httpErr *HTTPError
+	if errors.As(err, &httpErr) {
+		if msg == "" {
+			msg = httpErr.Error()
+		}
+		p.sendErrorJSON(w, msg, httpErr.Code())
+		return
+	}
+
 	status := http.StatusInternalServerError
 
 	var dErr *domain.Error

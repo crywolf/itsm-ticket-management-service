@@ -16,7 +16,8 @@ type IncidentServiceMock struct {
 
 // CreateIncident mock
 func (i *IncidentServiceMock) CreateIncident(ctx context.Context, channelID ref.ChannelID, params api.CreateIncidentParams) (ref.UUID, error) {
-	panic("implement me")
+	args := i.Called(channelID, params)
+	return args.Get(0).(ref.UUID), args.Error(1)
 }
 
 // GetIncident mock
