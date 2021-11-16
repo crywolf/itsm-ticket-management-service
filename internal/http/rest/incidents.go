@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
@@ -50,12 +49,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		// TODO renderLocationHeader (created)
-		resourceURI := fmt.Sprintf("%s/%s/%s", s.ExternalLocationAddress, "incidents", newID)
-
-		w.Header().Set("Location", resourceURI)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		s.presenters.incident.RenderLocationHeader(w, listIncidentsRoute, newID)
 	}
 }
 
@@ -103,6 +97,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 //	400: errorResponse400
 //  401: errorResponse401
 //  403: errorResponse403
+const listIncidentsRoute = "/incidents"
 
 // ListIncidents returns handler for listing incidents
 func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -120,7 +115,7 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
-		s.presenters.incident.RenderIncidentList(w, list, hypermediaMapper)
+		s.presenters.incident.RenderIncidentList(w, list, listIncidentsRoute, hypermediaMapper)
 	}
 }
 

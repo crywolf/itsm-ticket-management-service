@@ -18,7 +18,6 @@ func NewIncidentPresenter(logger *zap.SugaredLogger, serverAddr string) Incident
 }
 
 type incidentPresenter struct {
-	// TODO collectionName string
 	*BasePresenter
 }
 
@@ -58,7 +57,7 @@ func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incide
 	p.renderJSON(w, incResp)
 }
 
-func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident, hypermediaMapper hypermedia.Mapper) {
+func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident, listRoute string, hypermediaMapper hypermedia.Mapper) {
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList {
@@ -86,8 +85,7 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 
 		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
 		incHypermedia["self"] = map[string]string{
-			// TODO collectionName
-			"href": fmt.Sprintf("%s/%s/%s", p.serverAddr, "incidents", inc.UUID()),
+			"href": fmt.Sprintf("%s%s/%s", p.serverAddr, listRoute, inc.UUID()),
 		}
 
 		incResp := api.IncidentResponse{

@@ -7,17 +7,9 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 )
 
-// ErrorPresenter allows replying with error
-type ErrorPresenter interface {
-	// RenderError replies to the request with the specified error message and HTTP code.
-	// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
-	// The error message should be plain text.
-	RenderError(w http.ResponseWriter, msg string, err error)
-}
-
 // IncidentPresenter provides REST responses for incident resource
 type IncidentPresenter interface {
-	ErrorPresenter
+	BasicPresenters
 
 	// RenderIncident encodes incident and writes it to 'w'.  Also sets correct Content-Type header.
 	// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
@@ -25,5 +17,5 @@ type IncidentPresenter interface {
 
 	// RenderIncidentList encodes list of incidents and writes it to 'w'.  Also sets correct Content-Type header.
 	// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
-	RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident, hypermediaMapper hypermedia.Mapper)
+	RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident,listRoute string, hypermediaMapper hypermedia.Mapper)
 }

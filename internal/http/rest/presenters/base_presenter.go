@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"go.uber.org/zap"
@@ -25,6 +26,16 @@ func NewBasePresenter(logger *zap.SugaredLogger, serverAddr string) *BasePresent
 type BasePresenter struct {
 	logger     *zap.SugaredLogger
 	serverAddr string
+}
+
+// RenderLocationHeader sends Location header containing URI in the form 'route/resourceID'.
+// Use it for rendering location of newly created resource
+func (p BasePresenter) RenderLocationHeader(w http.ResponseWriter, route string, resourceID ref.UUID) {
+	resourceURI := fmt.Sprintf("%s%s/%s", p.serverAddr, route, resourceID)
+
+	w.Header().Set("Location", resourceURI)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 }
 
 // RenderError replies to the request with the specified error message and HTTP code
