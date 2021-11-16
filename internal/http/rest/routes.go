@@ -11,23 +11,18 @@ import (
 //go:embed api/swagger.yaml
 var swaggerFS embed.FS
 
-func (s *Server) routes() {
-	router := s.router
-
-	// incidents
-	router.POST("/incidents", s.CreateIncident())
-	router.GET("/incidents/:id", s.GetIncident())
-	router.GET("/incidents", s.ListIncidents())
+func (s *Server) registerRoutes() {
+	s.registerIncidentRoutes()
 
 	// API documentation
 	opts := middleware.RedocOpts{Path: "/docs", SpecURL: "/swagger.yaml", Title: "Ticket management service API documentation"}
 	docsHandler := middleware.Redoc(opts, nil)
 	// handlers for API documentation
-	router.Handler(http.MethodGet, "/docs", docsHandler)
-	router.Handler(http.MethodGet, "/swagger.yaml", http.FileServer(http.FS(swaggerFS)))
+	s.router.Handler(http.MethodGet, "/docs", docsHandler)
+	s.router.Handler(http.MethodGet, "/swagger.yaml", http.FileServer(http.FS(swaggerFS)))
 
 	// default Not Found handler
-	router.NotFound = http.HandlerFunc(s.JSONNotFoundError)
+	s.router.NotFound = http.HandlerFunc(s.JSONNotFoundError)
 }
 
 // JSONNotFoundError replies to the request with the 404 page not found general error message

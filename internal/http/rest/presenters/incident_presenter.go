@@ -18,6 +18,7 @@ func NewIncidentPresenter(logger *zap.SugaredLogger, serverAddr string) Incident
 }
 
 type incidentPresenter struct {
+	// TODO collectionName string
 	*BasePresenter
 }
 
@@ -85,6 +86,7 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 
 		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
 		incHypermedia["self"] = map[string]string{
+			// TODO collectionName
 			"href": fmt.Sprintf("%s/%s/%s", p.serverAddr, "incidents", inc.UUID()),
 		}
 

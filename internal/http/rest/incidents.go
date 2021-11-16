@@ -1,9 +1,7 @@
 package rest
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
@@ -14,32 +12,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// swagger:route POST /incidents incidents CreateIncident
-// Creates a new incident
-// responses:
-//	201: incidentCreatedResponse
-//	400: errorResponse400
-//	401: errorResponse401
-//	403: errorResponse403
-//	409: errorResponse409
+func (s Server) registerIncidentRoutes() {
+	s.router.POST("/incidents", s.CreateIncident())
+	s.router.GET("/incidents/:id", s.GetIncident())
+	s.router.GET("/incidents", s.ListIncidents())
+}
 
 // CreateIncident returns handler for creating single incident
 func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		defer func() { _ = r.Body.Close() }()
-		reqBody, err := ioutil.ReadAll(r.Body)
+		incPayload, err := s.inputPayloadConverter.IncidentParamsFromBody(r)
 		if err != nil {
-			msg := "could not read request body"
-			s.logger.Errorw(msg, "error", err)
-			s.presenter.RenderError(w, msg, err)
-			return
-		}
-
-		var incPayload api.CreateIncidentParams
-
-		err = json.Unmarshal(reqBody, &incPayload)
-		if err != nil {
-			err = presenters.WrapErrorf(err, http.StatusBadRequest, "could not decode JSON from request")
 			s.logger.Warnw("CreateIncident handler failed", "error", err)
 			s.presenter.RenderError(w, "", err)
 			return
@@ -65,6 +48,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
+		// TODO renderLocationHeader (created)
 		resourceURI := fmt.Sprintf("%s/%s/%s", s.ExternalLocationAddress, "incidents", newID)
 
 		w.Header().Set("Location", resourceURI)
