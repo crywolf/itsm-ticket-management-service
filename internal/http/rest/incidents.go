@@ -11,8 +11,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const incidentCollectionName = "incidents"
-
 func (s Server) registerIncidentRoutes() {
 	s.router.POST("/incidents", s.CreateIncident())
 	s.router.GET("/incidents/:id", s.GetIncident())

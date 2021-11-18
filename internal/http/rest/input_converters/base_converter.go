@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
@@ -20,15 +21,21 @@ type BasePayloadConverter struct {
 	logger *zap.SugaredLogger
 }
 
-func (c BasePayloadConverter) readBody(r *http.Request) ([]byte, error) {
+func (c BasePayloadConverter) unmarshalFromBody(r *http.Request, v interface{}) error {
 	defer func() { _ = r.Body.Close() }()
-	reqBody, err := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		msg := "could not read request body"
 		c.logger.Errorw(msg, "error", err)
 		err = presenters.WrapErrorf(err, http.StatusInternalServerError, msg)
-		return reqBody, err
+		return err
 	}
 
-	return reqBody, nil
+	err = json.Unmarshal(body, &v)
+	if err != nil {
+		err = presenters.WrapErrorf(err, http.StatusBadRequest, "could not decode JSON from request")
+		return err
+	}
+
+	return nil
 }
