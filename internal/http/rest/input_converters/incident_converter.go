@@ -22,7 +22,7 @@ type incidentPayloadConverter struct {
 func (c incidentPayloadConverter) IncidentParamsFromBody(r *http.Request) (api.CreateIncidentParams, error) {
 	var incPayload api.CreateIncidentParams
 
-	if err := c.unmarshalFromBody(r, incPayload); err != nil {
+	if err := c.unmarshalFromBody(r, &incPayload); err != nil {
 		return incPayload, err
 	}
 

@@ -51,7 +51,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
 		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
 
-		expectedJSON := `{"error":"could not decode JSON from request: invalid character '}' after object key"}`
+		expectedJSON := `{"error":"Request body contains badly-formed JSON (at position 24): invalid character '}' after object key"}`
 		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
 	})
 
@@ -70,7 +70,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 		})
 
 		payload := []byte(`{
-			"valid": "payload"
+			"short_description": "some test incident 1"
 		}`)
 
 		body := bytes.NewReader(payload)
