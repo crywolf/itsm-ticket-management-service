@@ -22,28 +22,7 @@ type incidentPresenter struct {
 }
 
 func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incident.Incident, hypermediaMapper hypermedia.Mapper) {
-	createdInfo := api.CreatedInfo{
-		CreatedAt: incident.CreatedUpdated.CreatedAt().String(),
-		CreatedBy: incident.CreatedUpdated.CreatedBy().String(),
-	}
-
-	updatedInfo := api.UpdatedInfo{
-		UpdatedAt: incident.CreatedUpdated.UpdatedAt().String(),
-		UpdatedBy: incident.CreatedUpdated.UpdatedBy().String(),
-	}
-
-	apiInc := api.Incident{
-		UUID:             incident.UUID().String(),
-		Number:           incident.Number,
-		ExternalID:       incident.ExternalID,
-		ShortDescription: incident.ShortDescription,
-		Description:      incident.Description,
-		State:            incident.State(),
-		CreatedUpdated: api.CreatedUpdated{
-			CreatedInfo: createdInfo,
-			UpdatedInfo: updatedInfo,
-		},
-	}
+	apiInc := p.convertIncidentToAPI(incident)
 
 	incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, incident)
 	incHypermedia["self"] = map[string]string{
@@ -62,28 +41,7 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList {
-		createdInfo := api.CreatedInfo{
-			CreatedAt: inc.CreatedUpdated.CreatedAt().String(),
-			CreatedBy: inc.CreatedUpdated.CreatedBy().String(),
-		}
-
-		updatedInfo := api.UpdatedInfo{
-			UpdatedAt: inc.CreatedUpdated.UpdatedAt().String(),
-			UpdatedBy: inc.CreatedUpdated.UpdatedBy().String(),
-		}
-
-		apiInc := api.Incident{
-			UUID:             inc.UUID().String(),
-			Number:           inc.Number,
-			ExternalID:       inc.ExternalID,
-			ShortDescription: inc.ShortDescription,
-			Description:      inc.Description,
-			State:            inc.State(),
-			CreatedUpdated: api.CreatedUpdated{
-				CreatedInfo: createdInfo,
-				UpdatedInfo: updatedInfo,
-			},
-		}
+		apiInc := p.convertIncidentToAPI(inc)
 
 		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
 		incHypermedia["self"] = map[string]string{
@@ -109,4 +67,36 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 	}
 
 	p.renderJSON(w, resp)
+}
+
+func (p incidentPresenter) convertIncidentToAPI(inc incident.Incident) api.Incident {
+	createdInfo := api.CreatedInfo{
+		CreatedAt: inc.CreatedUpdated.CreatedAt().String(),
+		CreatedBy: inc.CreatedUpdated.CreatedBy().String(),
+	}
+
+	updatedInfo := api.UpdatedInfo{
+		UpdatedAt: inc.CreatedUpdated.UpdatedAt().String(),
+		UpdatedBy: inc.CreatedUpdated.UpdatedBy().String(),
+	}
+
+	var timelogUUIDs []api.UUID
+	for _, timelog := range inc.Timelogs {
+		timelogUUIDs = append(timelogUUIDs, api.UUID(timelog))
+	}
+
+	apiInc := api.Incident{
+		UUID:             inc.UUID().String(),
+		Number:           inc.Number,
+		ExternalID:       inc.ExternalID,
+		ShortDescription: inc.ShortDescription,
+		Description:      inc.Description,
+		State:            inc.State(),
+		Timelogs:         timelogUUIDs,
+		CreatedUpdated: api.CreatedUpdated{
+			CreatedInfo: createdInfo,
+			UpdatedInfo: updatedInfo,
+		},
+	}
+	return apiInc
 }

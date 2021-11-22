@@ -3,6 +3,7 @@ package incident
 import (
 	"errors"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 )
@@ -22,6 +23,10 @@ type Incident struct {
 
 	state State
 
+	openTimelog *timelog.Timelog
+
+	Timelogs []ref.UUID
+
 	CreatedUpdated types.CreatedUpdated
 }
 
@@ -30,7 +35,7 @@ func (i Incident) UUID() ref.UUID {
 	return i.uuid
 }
 
-// SetUUID returns error if it was already set
+// SetUUID returns error if UUID was already set
 func (i *Incident) SetUUID(v ref.UUID) error {
 	if !i.uuid.IsZero() {
 		return errors.New("cannot set UUID, it was already set")
@@ -49,6 +54,18 @@ func (i *Incident) SetState(s State) error {
 	// TODO add state machine and checks
 	i.state = s
 	return nil
+}
+
+func (i Incident) OpenTimelog() *timelog.Timelog {
+	return i.openTimelog
+}
+
+func (i *Incident) SetOpenTimelog(openTimelog *timelog.Timelog) {
+	i.openTimelog = openTimelog
+}
+
+func (i Incident) HasOpenTimelog() bool {
+	return i.openTimelog != nil
 }
 
 // AllowedAction represents action that can be performed with the incident

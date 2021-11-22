@@ -15,10 +15,12 @@
 // swagger:meta
 package api
 
-import "github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-
 // NOTE: Types defined here are purely for documentation purposes
 // these types are not used by any of the handlers
+
+// UUID represents UUID of a resource
+// swagger:strfmt uuid
+type UUID string
 
 // swagger:parameters GetIncident
 type generalIDParameterWrapper struct {
@@ -27,7 +29,7 @@ type generalIDParameterWrapper struct {
 	// ID of the resource
 	// in: path
 	// required: true
-	UUID ref.UUID `json:"uuid"`
+	UUID UUID `json:"uuid"`
 }
 
 // swagger:parameters ListIncidents
@@ -44,7 +46,7 @@ type AuthorizationHeaders struct {
 
 	// in: header
 	// required: true
-	ChannelID ref.ChannelID `json:"channel-id"`
+	ChannelID UUID `json:"channel-id"`
 }
 
 // ActionLink represents HAL hypermedia links

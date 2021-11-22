@@ -1,7 +1,6 @@
 package ref
 
 // UUID represents UUID of a resource
-// swagger:strfmt uuid
 type UUID string
 
 func (u UUID) String() string {
@@ -14,7 +13,6 @@ func (u UUID) IsZero() bool {
 }
 
 // ChannelID represents UUID of a channel
-// swagger:strfmt uuid
 type ChannelID UUID
 
 func (u ChannelID) String() string {
@@ -27,7 +25,6 @@ func (u ChannelID) IsZero() bool {
 }
 
 // ExternalUserUUID represents UUID of a user (in external service)
-// swagger:strfmt uuid
 type ExternalUserUUID UUID
 
 func (u ExternalUserUUID) String() string {

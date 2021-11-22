@@ -14,6 +14,10 @@ type Incident struct {
 
 	State string
 
+//	OpenTimelog *Timelog
+
+	Timelogs []string
+
 	CreatedAt string
 
 	CreatedBy string

@@ -110,6 +110,14 @@ definitions:
         format: string
         type: string
         x-go-name: State
+      timelogs:
+        description: List of timelogs
+        items:
+          format: uuid
+          type: string
+        readOnly: true
+        type: array
+        x-go-name: Timelogs
       updated_at:
         description: Time when the resource was updated
         format: date-time
@@ -167,6 +175,14 @@ definitions:
         format: string
         type: string
         x-go-name: State
+      timelogs:
+        description: List of timelogs
+        items:
+          format: uuid
+          type: string
+        readOnly: true
+        type: array
+        x-go-name: Timelogs
       updated_at:
         description: Time when the resource was updated
         format: date-time
@@ -195,6 +211,52 @@ definitions:
     title: State of the ticket is enum.
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident
+  Timelog:
+    description: Timelog object
+    properties:
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+      remote:
+        type: boolean
+        x-go-name: Remote
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+      uuid:
+        format: uuid
+        type: string
+        x-go-name: UUID
+      visit_summary:
+        type: string
+        x-go-name: VisitSummary
+      work:
+        description: Time spent working in seconds
+        format: uint64
+        minimum: 0
+        type: integer
+        x-go-name: Work
+    required:
+    - created_at
+    - created_by
+    - uuid
+    - remote
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   UpdatedInfo:
     description: UpdatedInfo contains timestamp and user who updated the resource
     properties:
@@ -434,6 +496,14 @@ responses:
           format: string
           type: string
           x-go-name: State
+        timelogs:
+          description: List of timelogs
+          items:
+            format: uuid
+            type: string
+          readOnly: true
+          type: array
+          x-go-name: Timelogs
         updated_at:
           description: Time when the resource was updated
           format: date-time

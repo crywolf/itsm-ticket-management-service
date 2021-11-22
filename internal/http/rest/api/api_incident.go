@@ -26,6 +26,10 @@ type Incident struct {
 	// example: new
 	State incident.State `json:"state"`
 
+	// List of timelogs
+	// read only: true
+	Timelogs []UUID `json:"timelogs,omitempty"`
+
 	CreatedUpdated
 }
 
