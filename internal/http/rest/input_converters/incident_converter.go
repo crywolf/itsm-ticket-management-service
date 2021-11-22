@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
 	"go.uber.org/zap"
 )
 
 // NewIncidentPayloadConverter creates an incident input payload converting service
-func NewIncidentPayloadConverter(logger *zap.SugaredLogger) IncidentPayloadConverter {
+func NewIncidentPayloadConverter(logger *zap.SugaredLogger, validator validators.PayloadValidator) IncidentPayloadConverter {
 	return &incidentPayloadConverter{
-		BasePayloadConverter: NewBasePayloadConverter(logger),
+		BasePayloadConverter: NewBasePayloadConverter(logger, validator),
 	}
 }
 

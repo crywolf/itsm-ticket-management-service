@@ -4,6 +4,8 @@ package memory
 type Incident struct {
 	ID string
 
+	Number string
+
 	ExternalID string
 
 	ShortDescription string

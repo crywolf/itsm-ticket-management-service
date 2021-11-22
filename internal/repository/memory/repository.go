@@ -36,6 +36,7 @@ func (m *RepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc i
 
 	storedInc := Incident{
 		ID:               id.String(),
+		Number:           inc.Number,
 		ExternalID:       inc.ExternalID,
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
@@ -96,6 +97,7 @@ func (m RepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (inc
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
+	inc.Number = storedInc.Number
 	inc.ExternalID = storedInc.ExternalID
 	inc.ShortDescription = storedInc.ShortDescription
 	inc.Description = storedInc.Description

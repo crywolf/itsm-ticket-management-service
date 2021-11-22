@@ -24,7 +24,9 @@ func TestCreateIncidentHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	t.Run("when request is not valid JSON", func(t *testing.T) {
+	t.Parallel()
+
+	t.Run("when body payload is not valid JSON", func(t *testing.T) {
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
@@ -55,9 +57,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
 	})
 
-	// TODO test validation - missing required field (short_description)
-
-	t.Run("when request is valid", func(t *testing.T) {
+	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
 		incidentSvc := new(mocks.IncidentServiceMock)
 		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), mock.AnythingOfType("api.CreateIncidentParams")).
 			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
@@ -70,6 +70,45 @@ func TestCreateIncidentHandler(t *testing.T) {
 		})
 
 		payload := []byte(`{
+			"description": "incident with required fields missing"
+		}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("POST", "/incidents", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"'number' is a required field, 'short_description' is a required field"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
+	t.Run("when body payload is valid", func(t *testing.T) {
+		incidentSvc := new(mocks.IncidentServiceMock)
+		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), mock.AnythingOfType("api.CreateIncidentParams")).
+			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			IncidentService:         incidentSvc,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		payload := []byte(`{
+			"number": "INC123",
 			"short_description": "some test incident 1"
 		}`)
 
@@ -86,7 +125,6 @@ func TestCreateIncidentHandler(t *testing.T) {
 		expectedLocation := "http://service.url/incidents/38316161-3035-4864-ad30-6231392d3433"
 		assert.Equal(t, expectedLocation, resp.Header.Get("Location"), "Location header")
 	})
-
 }
 
 func TestGetIncidentHandler(t *testing.T) {
@@ -95,6 +133,8 @@ func TestGetIncidentHandler(t *testing.T) {
 
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
+
+	t.Parallel()
 
 	t.Run("when incident does not exist", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
@@ -135,6 +175,7 @@ func TestGetIncidentHandler(t *testing.T) {
 	t.Run("when incident exists", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
 		retInc := incident.Incident{
+			Number:           "A123456",
 			ShortDescription: "Test incident 1",
 		}
 		err := retInc.SetUUID(ref.UUID(uuid))
@@ -179,6 +220,7 @@ func TestGetIncidentHandler(t *testing.T) {
 
 		expectedJSON := `{
 			"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
+			"number": "A123456",
 			"short_description":"Test incident 1",
 			"state":"new",
 			"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
@@ -202,11 +244,14 @@ func TestListIncidentsHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
+	t.Parallel()
+
 	t.Run("when some incidents were found", func(t *testing.T) {
 		expectedJSON := `{
 			"result":
 				[{
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
+					"number": "Accc265871",
 					"short_description":"Test incident 1",
 					"state":"new",
 					"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
@@ -221,6 +266,7 @@ func TestListIncidentsHandler(t *testing.T) {
 				},
 				{
 					"uuid": "0ac5ebce-17e7-4edc-9552-fefe16e127fb",
+					"number": "555555",
 					"short_description":"Test incident 2",
 					"state":"resolved",
 					"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
@@ -241,6 +287,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		var list []incident.Incident
 
 		fInc1 := incident.Incident{
+			Number:           "Accc265871",
 			ShortDescription: "Test incident 1",
 		}
 		err := fInc1.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
@@ -256,6 +303,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		list = append(list, fInc1)
 
 		fInc2 := incident.Incident{
+			Number:           "555555",
 			ShortDescription: "Test incident 2",
 		}
 		err = fInc2.SetUUID("0ac5ebce-17e7-4edc-9552-fefe16e127fb")

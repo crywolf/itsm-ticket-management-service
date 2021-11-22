@@ -2,12 +2,15 @@ package rest
 
 import (
 	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
 )
 
 type jsonInputPayloadConverters struct {
-	incident  converters.IncidentPayloadConverter
+	incident converters.IncidentPayloadConverter
 }
 
 func (s *Server) registerInputConverters() {
-	s.inputPayloadConverters.incident = converters.NewIncidentPayloadConverter(s.logger)
+	validator := validators.NewPayloadValidator()
+
+	s.inputPayloadConverters.incident = converters.NewIncidentPayloadConverter(s.logger, validator)
 }

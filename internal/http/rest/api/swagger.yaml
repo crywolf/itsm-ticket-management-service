@@ -12,10 +12,15 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      number:
+        description: Unique identifier
+        type: string
+        x-go-name: Number
       short_description:
         type: string
         x-go-name: ShortDescription
     required:
+    - number
     - short_description
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
@@ -92,6 +97,10 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      number:
+        description: Unique identifier provided by user creating the incident
+        type: string
+        x-go-name: Number
       short_description:
         type: string
         x-go-name: ShortDescription
@@ -119,6 +128,7 @@ definitions:
     - created_at
     - created_by
     - uuid
+    - number
     - short_description
     - state
     type: object
@@ -144,6 +154,10 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      number:
+        description: Unique identifier provided by user creating the incident
+        type: string
+        x-go-name: Number
       short_description:
         type: string
         x-go-name: ShortDescription
@@ -171,6 +185,7 @@ definitions:
     - created_at
     - created_by
     - uuid
+    - number
     - short_description
     - state
     title: IncidentResponse ...
@@ -406,6 +421,10 @@ responses:
           description: ID in external system
           type: string
           x-go-name: ExternalID
+        number:
+          description: Unique identifier provided by user creating the incident
+          type: string
+          x-go-name: Number
         short_description:
           type: string
           x-go-name: ShortDescription
@@ -433,6 +452,7 @@ responses:
       - created_at
       - created_by
       - uuid
+      - number
       - short_description
       - state
       type: object

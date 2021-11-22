@@ -7,21 +7,24 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/go-openapi/runtime/middleware/header"
 	"go.uber.org/zap"
 )
 
 // NewBasePayloadConverter returns input payload converting service with basic functionality
-func NewBasePayloadConverter(logger *zap.SugaredLogger) *BasePayloadConverter {
+func NewBasePayloadConverter(logger *zap.SugaredLogger, validator validators.PayloadValidator) *BasePayloadConverter {
 	return &BasePayloadConverter{
-		logger: logger,
+		logger:    logger,
+		validator: validator,
 	}
 }
 
 // BasePayloadConverter must be included in all derived converters via object composition
 type BasePayloadConverter struct {
-	logger *zap.SugaredLogger
+	logger    *zap.SugaredLogger
+	validator validators.PayloadValidator
 }
 
 func (c BasePayloadConverter) unmarshalFromBody(r *http.Request, dst interface{}) error {
@@ -52,7 +55,7 @@ func (c BasePayloadConverter) unmarshalFromBody(r *http.Request, dst interface{}
 			return presenters.WrapErrorf(err, http.StatusBadRequest, "Request body contains badly-formed JSON")
 
 		case errors.As(err, &unmarshalTypeError):
-			return presenters.NewErrorf(http.StatusBadRequest, "Request body contains an invalid value for the %q field (type: %s, value: %s)", unmarshalTypeError.Field, unmarshalTypeError.Type, unmarshalTypeError.Value)
+			return presenters.NewErrorf(http.StatusBadRequest, "Request body contains an invalid value for the '%s' field (type: %s, value: %s)", unmarshalTypeError.Field, unmarshalTypeError.Type, unmarshalTypeError.Value)
 
 		// Catch the error caused by extra unexpected fields in the request body.
 		// There is an open issue at https://github.com/golang/go/issues/29035 regarding turning this into a sentinel error.
@@ -75,5 +78,6 @@ func (c BasePayloadConverter) unmarshalFromBody(r *http.Request, dst interface{}
 		return presenters.NewErrorf(http.StatusBadRequest, "Request body must only contain a single JSON object")
 	}
 
-	return nil
+	// input payload validation
+	return c.validator.Validate(dst)
 }

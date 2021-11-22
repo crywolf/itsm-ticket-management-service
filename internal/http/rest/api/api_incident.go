@@ -9,6 +9,10 @@ type Incident struct {
 	// swagger:strfmt uuid
 	UUID string `json:"uuid"`
 
+	// Unique identifier provided by user creating the incident
+	// required: true
+	Number string `json:"number"`
+
 	// ID in external system
 	ExternalID string `json:"external_id,omitempty"`
 
@@ -28,13 +32,17 @@ type Incident struct {
 // CreateIncidentParams is the payload used to create new incident
 // swagger:model
 type CreateIncidentParams struct {
+	// Unique identifier
+	// required: true
+	Number string `json:"number" validate:"required"`
+
 	// ID in external system
-	ExternalID string `json:"external_id,omitempty"`
+	ExternalID string `json:"external_id"`
 
 	// required: true
-	ShortDescription string `json:"short_description"`
+	ShortDescription string `json:"short_description" validate:"required"`
 
-	Description string `json:"description,omitempty"`
+	Description string `json:"description"`
 }
 
 // IncidentResponse ...

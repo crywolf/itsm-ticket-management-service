@@ -34,6 +34,7 @@ func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incide
 
 	apiInc := api.Incident{
 		UUID:             incident.UUID().String(),
+		Number:           incident.Number,
 		ExternalID:       incident.ExternalID,
 		ShortDescription: incident.ShortDescription,
 		Description:      incident.Description,
@@ -73,6 +74,7 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 
 		apiInc := api.Incident{
 			UUID:             inc.UUID().String(),
+			Number:           inc.Number,
 			ExternalID:       inc.ExternalID,
 			ShortDescription: inc.ShortDescription,
 			Description:      inc.Description,

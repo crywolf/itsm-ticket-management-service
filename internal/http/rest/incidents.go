@@ -17,6 +17,15 @@ func (s Server) registerIncidentRoutes() {
 	s.router.GET("/incidents", s.ListIncidents())
 }
 
+// swagger:route POST /incidents incidents CreateIncident
+// Creates a new incident
+// responses:
+//	201: incidentCreatedResponse
+//	400: errorResponse400
+//	401: errorResponse401
+//	403: errorResponse403
+//	409: errorResponse409
+
 // CreateIncident returns handler for creating single incident
 func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

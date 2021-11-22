@@ -22,6 +22,7 @@ func TestRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	ctx := context.Background()
 
 	inc1 := incident.Incident{
+		Number:           "ABC123",
 		ExternalID:       "some external ID",
 		ShortDescription: "some short description",
 		Description:      "some description",
@@ -38,6 +39,7 @@ func TestRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, incID, retInc.UUID())
+	assert.Equal(t, inc1.Number, retInc.Number)
 	assert.Equal(t, inc1.ExternalID, retInc.ExternalID)
 	assert.Equal(t, inc1.ShortDescription, retInc.ShortDescription)
 	assert.Equal(t, inc1.Description, retInc.Description)
@@ -65,6 +67,7 @@ func TestRepositoryMemory_ListIncidents(t *testing.T) {
 	ctx := context.Background()
 
 	inc1 := incident.Incident{
+		Number:           "Bca258",
 		ExternalID:       "some external ID",
 		ShortDescription: "some short description",
 		Description:      "some description",
@@ -75,6 +78,7 @@ func TestRepositoryMemory_ListIncidents(t *testing.T) {
 	require.NoError(t, err)
 
 	inc2 := incident.Incident{
+		Number:           "CDB36478",
 		ExternalID:       "some external ID 2",
 		ShortDescription: "some short description 2",
 		Description:      "some description 2",
@@ -105,6 +109,7 @@ func TestRepositoryMemory_ListIncidents(t *testing.T) {
 		}
 
 		assert.NotEmpty(t, retInc.UUID)
+		assert.Equal(t, inc.Number, retInc.Number)
 		assert.Equal(t, inc.ExternalID, retInc.ExternalID)
 		assert.Equal(t, inc.ShortDescription, retInc.ShortDescription)
 		assert.Equal(t, inc.Description, retInc.Description)
@@ -117,6 +122,5 @@ func TestRepositoryMemory_ListIncidents(t *testing.T) {
 		assert.NotEmpty(t, inc.CreatedUpdated.UpdatedBy())
 		assert.Equal(t, inc.CreatedUpdated.UpdatedBy(), retInc.CreatedUpdated.UpdatedBy())
 		assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.UpdatedAt())
-
 	}
 }

@@ -11,6 +11,8 @@ import (
 type Incident struct {
 	uuid ref.UUID
 
+	Number string
+
 	// ID in external system
 	ExternalID string
 
