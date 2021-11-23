@@ -5,6 +5,7 @@ import (
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/stretchr/testify/mock"
 )
@@ -15,19 +16,19 @@ type IncidentServiceMock struct {
 }
 
 // CreateIncident mock
-func (i *IncidentServiceMock) CreateIncident(ctx context.Context, channelID ref.ChannelID, params api.CreateIncidentParams) (ref.UUID, error) {
-	args := i.Called(channelID, params)
+func (i *IncidentServiceMock) CreateIncident(ctx context.Context, channelID ref.ChannelID, actor user.Actor, params api.CreateIncidentParams) (ref.UUID, error) {
+	args := i.Called(channelID, actor, params)
 	return args.Get(0).(ref.UUID), args.Error(1)
 }
 
 // GetIncident mock
-func (i *IncidentServiceMock) GetIncident(_ context.Context, channelID ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
-	args := i.Called(ID, channelID)
+func (i *IncidentServiceMock) GetIncident(_ context.Context, channelID ref.ChannelID, actor user.Actor, ID ref.UUID) (incident.Incident, error) {
+	args := i.Called(ID, channelID, actor)
 	return args.Get(0).(incident.Incident), args.Error(1)
 }
 
 // ListIncidents mock
-func (i *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.ChannelID) ([]incident.Incident, error) {
-	args := i.Called(channelID)
+func (i *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.ChannelID, actor user.Actor) ([]incident.Incident, error) {
+	args := i.Called(channelID, actor)
 	return args.Get(0).([]incident.Incident), args.Error(1)
 }

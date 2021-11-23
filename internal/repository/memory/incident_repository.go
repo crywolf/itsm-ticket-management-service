@@ -19,8 +19,8 @@ type Clock interface {
 	Now() time.Time
 }
 
-// RepositoryMemory keeps data in memory
-type RepositoryMemory struct {
+// IncidentRepositoryMemory keeps data in memory
+type IncidentRepositoryMemory struct {
 	Rand      io.Reader
 	Clock     Clock
 	incidents []Incident
@@ -28,7 +28,7 @@ type RepositoryMemory struct {
 }
 
 // AddIncident adds the given incident to the repository
-func (r *RepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
+func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
 	id, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +60,7 @@ func (r *RepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc i
 }
 
 // GetIncident returns the incident with given ID from the repository
-func (r *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
+func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
 	var inc incident.Incident
 	var err error
 
@@ -81,7 +81,7 @@ func (r *RepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID re
 }
 
 // ListIncidents returns the list of incidents from the repository
-func (r *RepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]incident.Incident, error) {
+func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]incident.Incident, error) {
 	var list []incident.Incident
 
 	for _, storedInc := range r.incidents {
@@ -96,7 +96,7 @@ func (r *RepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]
 	return list, nil
 }
 
-func (r RepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {
+func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {
 	var inc incident.Incident
 	errMsg := "error loading incident from the repository"
 

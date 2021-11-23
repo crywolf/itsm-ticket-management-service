@@ -3,8 +3,10 @@ package rest
 import (
 	"net/http"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
@@ -41,7 +43,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		//user, ok := s.UserInfoFromRequest(r)
+		//actor, ok := s.UserInfoFromRequest(r)
 		//if !ok {
 		//	eMsg := "could not get invoking user from context"
 		//	s.logger.Error(eMsg)
@@ -49,7 +51,13 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 		//	return
 		//}
 
-		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, incPayload)
+		actor := user.Actor{
+			BasicUser: user.BasicUser{
+				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			},
+		} // TODO - user service
+
+		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, actor, incPayload)
 		if err != nil {
 			s.logger.Errorw("CreateIncident handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
@@ -85,14 +93,23 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		inc, err := s.incidentService.GetIncident(r.Context(), channelID, ref.UUID(id))
+		actor := user.Actor{
+			BasicUser: user.BasicUser{
+				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			},
+		} // TODO - user service
+		fe := &fieldengineer.FieldEngineer{}
+		_ = fe.SetUUID("123456789")
+		actor.SetFieldEngineer(fe)
+
+		inc, err := s.incidentService.GetIncident(r.Context(), channelID, actor, ref.UUID(id))
 		if err != nil {
 			s.logger.Errorw("GetIncident handler failed", "ID", id, "error", err)
 			s.presenters.incident.RenderError(w, "incident not found", err)
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actor)
 		s.presenters.incident.RenderIncident(w, inc, hypermediaMapper)
 	}
 }
@@ -114,14 +131,23 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		list, err := s.incidentService.ListIncidents(r.Context(), channelID)
+		actor := user.Actor{
+			BasicUser: user.BasicUser{
+				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			},
+		} // TODO - user service
+		fe := &fieldengineer.FieldEngineer{}
+		_ = fe.SetUUID("123456789")
+		actor.SetFieldEngineer(fe)
+
+		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actor)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String())
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actor)
 		s.presenters.incident.RenderIncidentList(w, list, listIncidentsRoute, hypermediaMapper)
 	}
 }
@@ -132,9 +158,9 @@ type IncidentHypermediaMapper struct {
 }
 
 // NewIncidentHypermediaMapper returns new hypermedia mapper for incident resource
-func NewIncidentHypermediaMapper(serverAddr, currentURL string) IncidentHypermediaMapper {
+func NewIncidentHypermediaMapper(serverAddr, currentURL string, actor user.Actor) IncidentHypermediaMapper {
 	return IncidentHypermediaMapper{
-		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL),
+		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL, actor),
 	}
 }
 

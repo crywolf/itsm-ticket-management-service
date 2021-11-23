@@ -64,8 +64,8 @@ func (p BasePresenter) RenderError(w http.ResponseWriter, msg string, err error)
 			status = http.StatusBadRequest
 		case domain.ErrorCodeNotFound:
 			status = http.StatusNotFound
-		case domain.ErrorCodeUserNotAuthorized:
-			status = http.StatusUnauthorized
+		//case domain.ErrorCodeUserNotAuthorized:
+		//	status = http.StatusUnauthorized
 		case domain.ErrorCodeActionForbidden:
 			status = http.StatusForbidden
 		case domain.ErrorCodeUnknown:
@@ -82,7 +82,7 @@ func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Map
 	hypermediaLinks := api.HypermediaLinks{}
 
 	actions := hypermediaMapper.RoutesToHypermediaActionLinks()
-	allowedActions := domainObject.AllowedActions()
+	allowedActions := domainObject.AllowedActions(hypermediaMapper.Actor())
 	for _, action := range allowedActions {
 		link := actions[action]
 		href := strings.ReplaceAll(link.Href, "{uuid}", domainObject.UUID().String())

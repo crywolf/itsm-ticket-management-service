@@ -18,32 +18,27 @@ type service struct {
 	r IncidentRepository
 }
 
-func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID /*, actor user.BasicUser,*/, params api.CreateIncidentParams) (ref.UUID, error) {
+func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID, actor user.Actor, params api.CreateIncidentParams) (ref.UUID, error) {
 	newIncident := incident.Incident{
 		ExternalID:       params.ExternalID,
 		ShortDescription: params.ShortDescription,
 		Description:      params.Description,
 	}
 
-	// TODO take from func params
-	actor := user.BasicUser{
-		ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
-	}
-
-	if err := newIncident.CreatedUpdated.SetCreatedBy(actor.ExternalUserUUID); err != nil {
+	if err := newIncident.CreatedUpdated.SetCreatedBy(actor.ExternalUserUUID()); err != nil {
 		return ref.UUID(""), err
 	}
-	if err := newIncident.CreatedUpdated.SetUpdatedBy(actor.ExternalUserUUID); err != nil {
+	if err := newIncident.CreatedUpdated.SetUpdatedBy(actor.ExternalUserUUID()); err != nil {
 		return ref.UUID(""), err
 	}
 
 	return s.r.AddIncident(ctx, channelID, newIncident)
 }
 
-func (s *service) GetIncident(ctx context.Context, channelID ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
+func (s *service) GetIncident(ctx context.Context, channelID ref.ChannelID, actor user.Actor, ID ref.UUID) (incident.Incident, error) {
 	return s.r.GetIncident(ctx, channelID, ID)
 }
 
-func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID) ([]incident.Incident, error) {
+func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID, actor user.Actor) ([]incident.Incident, error) {
 	return s.r.ListIncidents(ctx, channelID)
 }

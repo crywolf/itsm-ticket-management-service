@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/testutils"
 	"github.com/stretchr/testify/assert"
@@ -23,6 +25,12 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
+
+	actor := user.Actor{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+		},
+	} // TODO - mock in user service
 
 	t.Parallel()
 
@@ -58,14 +66,9 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 
 	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
-		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), mock.AnythingOfType("api.CreateIncidentParams")).
-			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
-
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
-			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
 
@@ -97,7 +100,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	t.Run("when body payload is valid", func(t *testing.T) {
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), mock.AnythingOfType("api.CreateIncidentParams")).
+		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), actor, mock.AnythingOfType("api.CreateIncidentParams")).
 			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
 
 		server := NewServer(Config{
@@ -134,13 +137,22 @@ func TestGetIncidentHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
+	actor := user.Actor{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+		},
+	} // TODO - mock in user service
+	fieldEngineer := &fieldengineer.FieldEngineer{}
+	_ = fieldEngineer.SetUUID("123456789")
+	actor.SetFieldEngineer(fieldEngineer)
+
 	t.Parallel()
 
 	t.Run("when incident does not exist", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
 
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID)).
+		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actor).
 			Return(incident.Incident{}, domain.NewErrorf(domain.ErrorCodeNotFound, "error from repository"))
 
 		server := NewServer(Config{
@@ -178,6 +190,8 @@ func TestGetIncidentHandler(t *testing.T) {
 			Number:           "A123456",
 			ShortDescription: "Test incident 1",
 		}
+
+		retInc.SetFieldEngineer(fieldEngineer)
 		err := retInc.SetUUID(ref.UUID(uuid))
 		require.NoError(t, err)
 		state, err := incident.NewStateFromString("new")
@@ -190,7 +204,7 @@ func TestGetIncidentHandler(t *testing.T) {
 		require.NoError(t, err)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID)).
+		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actor).
 			Return(retInc, nil)
 
 		server := NewServer(Config{
@@ -244,6 +258,15 @@ func TestListIncidentsHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
+	actor := user.Actor{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+		},
+	} // TODO - mock in user service
+	fieldEngineer := &fieldengineer.FieldEngineer{}
+	_ = fieldEngineer.SetUUID("123456789")
+	actor.SetFieldEngineer(fieldEngineer)
+
 	t.Parallel()
 
 	t.Run("when some incidents were found", func(t *testing.T) {
@@ -275,7 +298,6 @@ func TestListIncidentsHandler(t *testing.T) {
 					"updated_at":"2021-04-02T09:10:32+02:00",
 					"_links":{
 						"self":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb"},
-						"CancelIncident":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb/cancel"},
 						"IncidentStartWorking":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb/start_working"}
 					}
 				}],
@@ -290,6 +312,7 @@ func TestListIncidentsHandler(t *testing.T) {
 			Number:           "Accc265871",
 			ShortDescription: "Test incident 1",
 		}
+		fInc1.SetFieldEngineer(fieldEngineer)
 		err := fInc1.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
 		require.NoError(t, err)
 		state, err := incident.NewStateFromString("new")
@@ -306,6 +329,7 @@ func TestListIncidentsHandler(t *testing.T) {
 			Number:           "555555",
 			ShortDescription: "Test incident 2",
 		}
+		fInc2.SetFieldEngineer(fieldEngineer)
 		err = fInc2.SetUUID("0ac5ebce-17e7-4edc-9552-fefe16e127fb")
 		require.NoError(t, err)
 		state, err = incident.NewStateFromString("resolved")
@@ -319,7 +343,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		list = append(list, fInc2)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID)).Return(list, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actor).Return(list, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",

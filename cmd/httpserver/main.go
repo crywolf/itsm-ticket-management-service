@@ -31,7 +31,7 @@ func main() {
 
 	loadEnvConfiguration()
 
-	r := &memory.RepositoryMemory{
+	r := &memory.IncidentRepositoryMemory{
 		Clock: realClock{},
 	}
 	incidentService := incidentsvc.NewIncidentService(r)

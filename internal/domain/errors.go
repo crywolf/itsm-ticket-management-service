@@ -18,7 +18,8 @@ const (
 	ErrorCodeNotFound
 	ErrorCodeInvalidArgument
 	ErrorCodeActionForbidden
-	ErrorCodeUserNotAuthorized
+
+	//	ErrorCodeUserNotAuthorized
 )
 
 // WrapErrorf returns a wrapped error

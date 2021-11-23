@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
+func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	clock := mocks.FixedClock{}
-	repo := &RepositoryMemory{
+	repo := &IncidentRepositoryMemory{
 		Clock: clock,
 	}
 
@@ -54,9 +54,9 @@ func TestRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.UpdatedAt())
 }
 
-func TestRepositoryMemory_ListIncidents(t *testing.T) {
+func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	clock := mocks.FixedClock{}
-	repo := &RepositoryMemory{
+	repo := &IncidentRepositoryMemory{
 		Clock: clock,
 	}
 

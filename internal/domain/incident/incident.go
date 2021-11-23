@@ -3,6 +3,7 @@ package incident
 import (
 	"errors"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
@@ -21,6 +22,8 @@ type Incident struct {
 
 	Description string
 
+	fieldEngineer *fieldengineer.FieldEngineer
+
 	state State
 
 	openTimelog *timelog.Timelog
@@ -31,60 +34,54 @@ type Incident struct {
 }
 
 // UUID getter
-func (i Incident) UUID() ref.UUID {
-	return i.uuid
+func (e Incident) UUID() ref.UUID {
+	return e.uuid
 }
 
 // SetUUID returns error if UUID was already set
-func (i *Incident) SetUUID(v ref.UUID) error {
-	if !i.uuid.IsZero() {
-		return errors.New("cannot set UUID, it was already set")
+func (e *Incident) SetUUID(v ref.UUID) error {
+	if !e.uuid.IsZero() {
+		return errors.New("incident: cannot set UUID, it was already set")
 	}
-	i.uuid = v
+	e.uuid = v
 	return nil
 }
 
 // State getter
-func (i Incident) State() State {
-	return i.state
+func (e Incident) State() State {
+	return e.state
 }
 
 // SetState ...
-func (i *Incident) SetState(s State) error {
+func (e *Incident) SetState(s State) error {
 	// TODO add state machine and checks
-	i.state = s
+	e.state = s
 	return nil
 }
 
-func (i Incident) OpenTimelog() *timelog.Timelog {
-	return i.openTimelog
+// FieldEngineer returns pointer to field engineer if the field engineer is set or nil if not
+func (e Incident) FieldEngineer() *fieldengineer.FieldEngineer {
+	return e.fieldEngineer
 }
 
-func (i *Incident) SetOpenTimelog(openTimelog *timelog.Timelog) {
-	i.openTimelog = openTimelog
+// SetFieldEngineer sets field engineer
+func (e *Incident) SetFieldEngineer(fieldEngineer *fieldengineer.FieldEngineer) {
+	if e.fieldEngineer == nil {
+		e.fieldEngineer = fieldEngineer
+	}
 }
 
-func (i Incident) HasOpenTimelog() bool {
-	return i.openTimelog != nil
+// OpenTimelog returns open timelog if any or nil pointer
+func (e Incident) OpenTimelog() *timelog.Timelog {
+	return e.openTimelog
 }
 
-// AllowedAction represents action that can be performed with the incident
-type AllowedAction string
-
-func (a AllowedAction) String() string {
-	return string(a)
+// SetOpenTimelog sets open timelog (do not use in the domain,method is used by repository)
+func (e *Incident) SetOpenTimelog(openTimelog *timelog.Timelog) {
+	e.openTimelog = openTimelog
 }
 
-// AllowedActions values
-const (
-	ActionCancel       AllowedAction = "Cancel"
-	ActionStartWorking AllowedAction = "StartWorking"
-)
-
-// AllowedActions returns list of actions that can be performed with the incident according to its state and other conditions
-func (i Incident) AllowedActions() []string {
-	// TODO - this is just for testing
-	var acts []string
-	acts = append(acts, ActionCancel.String(), ActionStartWorking.String())
-	return acts
+// HasOpenTimelog returns true if the ticket has open timelog
+func (e Incident) HasOpenTimelog() bool {
+	return e.openTimelog != nil
 }
