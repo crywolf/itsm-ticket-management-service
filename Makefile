@@ -19,6 +19,8 @@ BUILD_DIR?=build
 test:
 	go test -v ./internal/...
 
+test-all: test
+
 #e2e-test:
 #	docker-compose down
 #	docker-compose up -d
