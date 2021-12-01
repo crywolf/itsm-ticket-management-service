@@ -7,10 +7,13 @@ import (
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	usersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	grpc2http "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/status"
 )
 
 // Server is a http.Handler with dependencies
@@ -71,13 +74,53 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"url", r.URL.String(),
 	)
 
-	channelID := r.Header.Get("channel-id")
-	ctx := context.WithValue(r.Context(), channelIDKey, channelID)
+	// add channelID and authToken to request's context
+	sChannelID := r.Header.Get("channel-id")
+	ctx := context.WithValue(r.Context(), channelIDKey, sChannelID)
 
 	authToken := r.Header.Get("authorization")
 	ctx = context.WithValue(ctx, authKey, authToken)
 
+	r = r.WithContext(ctx)
+
+	// make sure the authToken was sent in the header, otherwise end here and render error to the client
+	if _, err := s.assertAuthToken(w, r); err != nil {
+		return
+	}
+
+	// make sure the channelID was sent in the header, otherwise end here and render error to the client
+	channelID, err := s.assertChannelID(w, r)
+	if err != nil {
+		return
+	}
+
+	// get Actor from the external user service and add it to the request
+	actorUser, err := s.userService.ActorFromRequest(authToken, channelID, r.Header.Get("on_behalf"))
+	if err != nil {
+		s.logger.Error("AddUserInfo middleware: ActorFromRequest failed:", "error", err)
+		httpStatusCode := grpc2http.HTTPStatusFromCode(status.Code(err))
+		err := presenters.WrapErrorf(err, httpStatusCode, "could not retrieve correct user info from user service")
+		s.presenters.base.RenderError(w, "", err)
+		return
+	}
+	ctx = context.WithValue(ctx, userKey, &actorUser)
+
 	s.router.ServeHTTP(w, r.WithContext(ctx))
+}
+
+type userKeyType int
+
+var userKey userKeyType
+
+// ActorFromRequest returns the Actor user stored in request's context if any.
+func (s Server) actorFromRequest(r *http.Request) (actor.Actor, error) {
+	act, ok := r.Context().Value(userKey).(*actor.Actor)
+	if !ok {
+		err := presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
+		return actor.Actor{}, err
+	}
+
+	return *act, nil
 }
 
 type channelIDType int
@@ -91,7 +134,8 @@ func channelIDFromRequest(r *http.Request) (string, bool) {
 }
 
 // assertChannelID writes error message to response and returns error if channelID cannot be determined,
-// otherwise it returns channelID
+// otherwise it returns channelID.
+// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
 func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.ChannelID, error) {
 	channelID, ok := channelIDFromRequest(r)
 	if !ok {
@@ -116,7 +160,8 @@ type authType int
 var authKey authType
 
 // assertAuthToken writes error message to response and returns error if authorization token cannot be determined,
-// otherwise it returns authorization token
+// otherwise it returns authorization token.
+// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
 func (s Server) assertAuthToken(w http.ResponseWriter, r *http.Request) (string, error) {
 	authToken, ok := authTokenFromRequest(r)
 	if !ok {

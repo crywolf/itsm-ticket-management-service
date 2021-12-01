@@ -2,7 +2,6 @@ package usersvc
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -16,9 +15,9 @@ import (
 
 // Service provides basic info about user
 type Service interface {
-	// ActorFromRequest calls external use service and returns Actor object that represents a user who initiated the request
+	// ActorFromRequest calls external use service and returns an Actor object that represents a user who initiated the request
 	// or about user this request is made on behalf of
-	ActorFromRequest(r *http.Request) (actor.Actor, error)
+	ActorFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error)
 }
 
 // ServiceCloser provides Service functionality plus allows to close connection to external service
@@ -54,8 +53,8 @@ func (s userService) Close() error {
 	return s.conn.Close()
 }
 
-func (s userService) ActorFromRequest(r *http.Request) (actor.Actor, error) {
-	basicUser, err := s.basicUserFromRequest(r)
+func (s userService) ActorFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error) {
+	basicUser, err := s.basicUserFromRequest(authToken, channelID, onBehalf)
 	if err != nil {
 		return actor.Actor{}, err
 	}
@@ -71,10 +70,10 @@ func (s userService) ActorFromRequest(r *http.Request) (actor.Actor, error) {
 	return actorUser, nil
 }
 
-func (s userService) basicUserFromRequest(r *http.Request) (user.BasicUser, error) {
+func (s userService) basicUserFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (user.BasicUser, error) {
 	md := metadata.New(map[string]string{
-		"grpc-metadata-space": r.Header.Get("channel-id"),
-		"authorization":       r.Header.Get("authorization"),
+		"grpc-metadata-space": channelID.String(),
+		"authorization":       authToken,
 	})
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
@@ -82,7 +81,7 @@ func (s userService) basicUserFromRequest(r *http.Request) (user.BasicUser, erro
 	var resp *usermanagement.UserPersonalDetailsResponse
 	var err error
 
-	if onBehalf := r.Header.Get("on_behalf"); onBehalf != "" {
+	if onBehalf != "" {
 		resp, err = s.client.UserGet(ctx, &usermanagement.UserRequest{Uuid: onBehalf})
 		if err != nil {
 			return user.BasicUser{}, err

@@ -13,9 +13,9 @@ import (
 )
 
 func (s Server) registerIncidentRoutes() {
-	s.router.POST("/incidents", s.AddUserInfo(s.CreateIncident(), s.userService))
-	s.router.GET("/incidents/:id", s.AddUserInfo(s.GetIncident(), s.userService))
-	s.router.GET("/incidents", s.AddUserInfo(s.ListIncidents(), s.userService))
+	s.router.POST("/incidents", s.CreateIncident())
+	s.router.GET("/incidents/:id", s.GetIncident())
+	s.router.GET("/incidents", s.ListIncidents())
 }
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -42,9 +42,8 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		actorUser, ok := s.ActorFromContext(r.Context())
-		if !ok {
-			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
 			s.logger.Errorw("CreateIncident handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
@@ -86,10 +85,9 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		actorUser, ok := s.ActorFromContext(r.Context())
-		if !ok {
-			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
-			s.logger.Errorw("CreateIncident handler failed", "error", err)
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
+			s.logger.Errorw("GetIncident handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
@@ -123,10 +121,9 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		actorUser, ok := s.ActorFromContext(r.Context())
-		if !ok {
-			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
-			s.logger.Errorw("CreateIncident handler failed", "error", err)
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
+			s.logger.Errorw("ListIncidents handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}

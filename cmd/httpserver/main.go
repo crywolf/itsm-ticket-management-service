@@ -40,7 +40,7 @@ func main() {
 	// User service fetches user data from external service
 	userService, err := usersvc.NewService()
 	if err != nil {
-		logger.Fatal("could not create user service", zap.Error(err))
+		logger.Fatal("could not create user service", "error", err)
 	}
 
 	// HTTP server

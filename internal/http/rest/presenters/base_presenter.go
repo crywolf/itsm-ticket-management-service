@@ -98,9 +98,9 @@ func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Map
 // It encodes error string as JSON object {"error":"error_string"} and sets correct header.
 // It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
 // The error message should be plain text.
-func (p BasePresenter) renderErrorJSON(w http.ResponseWriter, error string, code int) {
+func (p BasePresenter) renderErrorJSON(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
-	errorJSON, err := json.Marshal(error)
+	errorJSON, err := json.Marshal(msg)
 	if err != nil {
 		p.logger.Errorw("sending json error", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)

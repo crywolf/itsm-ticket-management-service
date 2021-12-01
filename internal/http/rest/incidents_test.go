@@ -37,7 +37,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	t.Run("when body payload is not valid JSON", func(t *testing.T) {
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		server := NewServer(Config{
@@ -73,7 +73,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		server := NewServer(Config{
@@ -111,7 +111,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	t.Run("when body payload is valid", func(t *testing.T) {
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
@@ -164,11 +164,40 @@ func TestGetIncidentHandler(t *testing.T) {
 
 	t.Parallel()
 
+	t.Run("when 'channel-id' header is missing", func(t *testing.T) {
+		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		req := httptest.NewRequest("GET", "/incidents/"+uuid, nil)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"'channel-id' header missing or invalid"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
 	t.Run("when incident does not exist", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
 
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
@@ -225,7 +254,7 @@ func TestGetIncidentHandler(t *testing.T) {
 		require.NoError(t, err)
 
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
@@ -369,7 +398,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		list = append(list, fInc2)
 
 		us := new(mocks.UserServiceMock)
-		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
