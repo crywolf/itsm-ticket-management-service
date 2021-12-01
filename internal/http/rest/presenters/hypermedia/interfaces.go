@@ -2,7 +2,7 @@ package hypermedia
 
 import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 )
 
@@ -19,12 +19,12 @@ type Mapper interface {
 	// ServerAddr returns server URL. It is automatically implemented via BaseHypermediaMapper object.
 	ServerAddr() string
 	// Actor returns user who initiated current API call
-	Actor() user.Actor
+	Actor() actor.Actor
 }
 
 // ActionsMapper provides domain object mapping to hypermedia actions.
 // It must be implemented by domain object.
 type ActionsMapper interface {
-	AllowedActions(actor user.Actor) []string
+	AllowedActions(actor actor.Actor) []string
 	UUID() ref.UUID
 }

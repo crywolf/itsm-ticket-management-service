@@ -2,7 +2,7 @@ package incident
 
 import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // AllowedAction represents action that can be performed with the incident
@@ -19,7 +19,7 @@ const (
 )
 
 // AllowedActions returns list of actions that can be performed with the incident according to its state and other conditions
-func (e Incident) AllowedActions(actor user.Actor) []string {
+func (e Incident) AllowedActions(actor actor.Actor) []string {
 	var acts []string
 	if err := e.canBeCancelled(actor); err == nil {
 		acts = append(acts, ActionCancel.String())
@@ -33,7 +33,7 @@ func (e Incident) AllowedActions(actor user.Actor) []string {
 }
 
 // Cancel cancels the ticket
-func (e *Incident) Cancel(actor user.Actor) error {
+func (e *Incident) Cancel(actor actor.Actor) error {
 	if err := e.canBeCancelled(actor); err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (e *Incident) Cancel(actor user.Actor) error {
 	return nil
 }
 
-func (e *Incident) canBeCancelled(actor user.Actor) error {
+func (e *Incident) canBeCancelled(actor actor.Actor) error {
 	if e.state != StateNew {
 		return domain.NewErrorf(domain.ErrorCodeInvalidArgument, "ticket can be cancelled only in NEW state")
 	}
@@ -50,7 +50,7 @@ func (e *Incident) canBeCancelled(actor user.Actor) error {
 }
 
 // StartWorking can be used by assigned field engineer to start working on the ticket
-func (e *Incident) StartWorking(actor user.Actor) error {
+func (e *Incident) StartWorking(actor actor.Actor) error {
 	if err := e.canStartWorking(actor); err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (e *Incident) StartWorking(actor user.Actor) error {
 	return nil
 }
 
-func (e *Incident) canStartWorking(actor user.Actor) error {
+func (e *Incident) canStartWorking(actor actor.Actor) error {
 	if !actor.IsFieldEngineer() {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not field engineer, only assigned field engineer can start working")
 	}

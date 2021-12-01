@@ -12,6 +12,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/testutils"
 	"github.com/stretchr/testify/assert"
@@ -26,19 +27,24 @@ func TestCreateIncidentHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	actor := user.Actor{
+	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
 			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
 		},
-	} // TODO - mock in user service
+	}
 
 	t.Parallel()
 
 	t.Run("when body payload is not valid JSON", func(t *testing.T) {
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalLocationAddress: "http://service.url",
+			UserService:             us,
 		})
 
 		payload := []byte(`{"invalid json request"}`)
@@ -66,10 +72,15 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 
 	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalLocationAddress: "http://service.url",
+			UserService:             us,
 		})
 
 		payload := []byte(`{
@@ -99,8 +110,12 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 
 	t.Run("when body payload is valid", func(t *testing.T) {
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), actor, mock.AnythingOfType("api.CreateIncidentParams")).
+		incidentSvc.On("CreateIncident", ref.ChannelID(channelID), actorUser, mock.AnythingOfType("api.CreateIncidentParams")).
 			Return(ref.UUID("38316161-3035-4864-ad30-6231392d3433"), nil)
 
 		server := NewServer(Config{
@@ -108,6 +123,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 			Logger:                  logger,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
+			UserService:             us,
 		})
 
 		payload := []byte(`{
@@ -137,27 +153,32 @@ func TestGetIncidentHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	actor := user.Actor{
+	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
 			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
 		},
-	} // TODO - mock in user service
+	}
 	fieldEngineer := &fieldengineer.FieldEngineer{}
 	_ = fieldEngineer.SetUUID("123456789")
-	actor.SetFieldEngineer(fieldEngineer)
+	actorUser.SetFieldEngineer(fieldEngineer)
 
 	t.Parallel()
 
 	t.Run("when incident does not exist", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
 
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actor).
+		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actorUser).
 			Return(incident.Incident{}, domain.NewErrorf(domain.ErrorCodeNotFound, "error from repository"))
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
+			UserService:             us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
@@ -203,13 +224,18 @@ func TestGetIncidentHandler(t *testing.T) {
 		err = retInc.CreatedUpdated.SetUpdated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actor).
+		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actorUser).
 			Return(retInc, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
+			UserService:             us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
@@ -258,14 +284,14 @@ func TestListIncidentsHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	actor := user.Actor{
+	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
 			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
 		},
-	} // TODO - mock in user service
+	}
 	fieldEngineer := &fieldengineer.FieldEngineer{}
 	_ = fieldEngineer.SetUUID("123456789")
-	actor.SetFieldEngineer(fieldEngineer)
+	actorUser.SetFieldEngineer(fieldEngineer)
 
 	t.Parallel()
 
@@ -342,12 +368,17 @@ func TestListIncidentsHandler(t *testing.T) {
 		require.NoError(t, err)
 		list = append(list, fInc2)
 
+		us := new(mocks.UserServiceMock)
+		us.On("ActorFromRequest", mock.AnythingOfType("*http.Request")).
+			Return(actorUser, nil)
+
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actor).Return(list, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser).Return(list, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
+			UserService:             us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})

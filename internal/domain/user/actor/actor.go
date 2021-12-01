@@ -1,13 +1,14 @@
-package user
+package actor
 
 import (
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 )
 
 // Actor represents info about the user who initiated te API call
 type Actor struct {
-	BasicUser     BasicUser
+	BasicUser     user.BasicUser
 	fieldEngineer *fieldengineer.FieldEngineer
 }
 

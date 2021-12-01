@@ -9,6 +9,7 @@ import (
 	"time"
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
+	usersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository/memory"
 	"github.com/spf13/viper"
@@ -36,11 +37,18 @@ func main() {
 	}
 	incidentService := incidentsvc.NewIncidentService(r)
 
+	// User service fetches user data from external service
+	userService, err := usersvc.NewService()
+	if err != nil {
+		logger.Fatal("could not create user service", zap.Error(err))
+	}
+
 	// HTTP server
 	server := rest.NewServer(rest.Config{
 		Addr:                    viper.GetString("HTTPBindAddress"),
 		URISchema:               "http://",
 		Logger:                  logger,
+		UserService:             userService,
 		IncidentService:         incidentService,
 		ExternalLocationAddress: viper.GetString("ExternalLocationAddress"),
 	})

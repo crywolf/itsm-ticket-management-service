@@ -7,6 +7,7 @@ import (
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	usersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
@@ -19,7 +20,7 @@ type Server struct {
 	router    *httprouter.Router
 	logger    *zap.SugaredLogger
 	//authService             auth.Service
-	//userService             usersvc.Service
+	userService             usersvc.Service
 	incidentService         incidentsvc.IncidentService
 	inputPayloadConverters  jsonInputPayloadConverters
 	presenters              jsonPresenters
@@ -32,7 +33,7 @@ type Config struct {
 	URISchema string
 	Logger    *zap.SugaredLogger
 	//AuthService             auth.Service
-	//UserService             usersvc.Service
+	UserService             usersvc.Service
 	IncidentService         incidentsvc.IncidentService
 	ExternalLocationAddress string
 }
@@ -52,9 +53,8 @@ func NewServer(cfg Config) *Server {
 		router:    r,
 		logger:    cfg.Logger,
 		//authService:             cfg.AuthService,
-		//userService:             cfg.UserService,
-		incidentService: cfg.IncidentService,
-		//payloadValidator:        cfg.PayloadValidator,
+		userService:             cfg.UserService,
+		incidentService:         cfg.IncidentService,
 		ExternalLocationAddress: cfg.ExternalLocationAddress,
 	}
 	s.registerInputConverters()
@@ -74,8 +74,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	channelID := r.Header.Get("channel-id")
 	ctx := context.WithValue(r.Context(), channelIDKey, channelID)
 
-	//authToken := r.Header.Get("authorization")
-	//ctx = context.WithValue(ctx, authKey, authToken)
+	authToken := r.Header.Get("authorization")
+	ctx = context.WithValue(ctx, authKey, authToken)
 
 	s.router.ServeHTTP(w, r.WithContext(ctx))
 }
@@ -109,4 +109,35 @@ func (s Server) assertChannelID(w http.ResponseWriter, r *http.Request) (ref.Cha
 	}
 
 	return ref.ChannelID(channelID), nil
+}
+
+type authType int
+
+var authKey authType
+
+// assertAuthToken writes error message to response and returns error if authorization token cannot be determined,
+// otherwise it returns authorization token
+func (s Server) assertAuthToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	authToken, ok := authTokenFromRequest(r)
+	if !ok {
+		err := presenters.NewErrorf(http.StatusInternalServerError, "could not get authorization token from context")
+		s.logger.Errorw("assertAuthToken", "error", err)
+		s.presenters.base.RenderError(w, "cannot determine authorization token", err)
+		return "", err
+	}
+
+	if authToken == "" {
+		err := presenters.NewErrorf(http.StatusUnauthorized, "empty authorization token in context")
+		s.logger.Errorw("assertAuthToken", "error", err)
+		s.presenters.base.RenderError(w, "'authorization' header missing or invalid", err)
+		return "", err
+	}
+
+	return authToken, nil
+}
+
+// authTokenFromRequest returns authorization token stored in request's context, if any.
+func authTokenFromRequest(r *http.Request) (string, bool) {
+	ch, ok := r.Context().Value(authKey).(string)
+	return ch, ok
 }

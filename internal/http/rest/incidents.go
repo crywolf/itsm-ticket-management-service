@@ -3,10 +3,9 @@ package rest
 import (
 	"net/http"
 
-	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
@@ -14,9 +13,9 @@ import (
 )
 
 func (s Server) registerIncidentRoutes() {
-	s.router.POST("/incidents", s.CreateIncident())
-	s.router.GET("/incidents/:id", s.GetIncident())
-	s.router.GET("/incidents", s.ListIncidents())
+	s.router.POST("/incidents", s.AddUserInfo(s.CreateIncident(), s.userService))
+	s.router.GET("/incidents/:id", s.AddUserInfo(s.GetIncident(), s.userService))
+	s.router.GET("/incidents", s.AddUserInfo(s.ListIncidents(), s.userService))
 }
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -43,21 +42,15 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		//actor, ok := s.UserInfoFromRequest(r)
-		//if !ok {
-		//	eMsg := "could not get invoking user from context"
-		//	s.logger.Error(eMsg)
-		//	s.presenter.RenderError(w, eMsg, http.StatusInternalServerError)
-		//	return
-		//}
+		actorUser, ok := s.ActorFromContext(r.Context())
+		if !ok {
+			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
+			s.logger.Errorw("CreateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
 
-		actor := user.Actor{
-			BasicUser: user.BasicUser{
-				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
-			},
-		} // TODO - user service
-
-		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, actor, incPayload)
+		newID, err := s.incidentService.CreateIncident(r.Context(), channelID, actorUser, incPayload)
 		if err != nil {
 			s.logger.Errorw("CreateIncident handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
@@ -93,23 +86,22 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		actor := user.Actor{
-			BasicUser: user.BasicUser{
-				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
-			},
-		} // TODO - user service
-		fe := &fieldengineer.FieldEngineer{}
-		_ = fe.SetUUID("123456789")
-		actor.SetFieldEngineer(fe)
+		actorUser, ok := s.ActorFromContext(r.Context())
+		if !ok {
+			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
+			s.logger.Errorw("CreateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
 
-		inc, err := s.incidentService.GetIncident(r.Context(), channelID, actor, ref.UUID(id))
+		inc, err := s.incidentService.GetIncident(r.Context(), channelID, actorUser, ref.UUID(id))
 		if err != nil {
 			s.logger.Errorw("GetIncident handler failed", "ID", id, "error", err)
 			s.presenters.incident.RenderError(w, "incident not found", err)
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actor)
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actorUser)
 		s.presenters.incident.RenderIncident(w, inc, hypermediaMapper)
 	}
 }
@@ -131,23 +123,22 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		actor := user.Actor{
-			BasicUser: user.BasicUser{
-				ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
-			},
-		} // TODO - user service
-		fe := &fieldengineer.FieldEngineer{}
-		_ = fe.SetUUID("123456789")
-		actor.SetFieldEngineer(fe)
+		actorUser, ok := s.ActorFromContext(r.Context())
+		if !ok {
+			err = presenters.NewErrorf(http.StatusInternalServerError, "could not get actor from context")
+			s.logger.Errorw("CreateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
 
-		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actor)
+		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actorUser)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actor)
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actorUser)
 		s.presenters.incident.RenderIncidentList(w, list, listIncidentsRoute, hypermediaMapper)
 	}
 }
@@ -158,7 +149,7 @@ type IncidentHypermediaMapper struct {
 }
 
 // NewIncidentHypermediaMapper returns new hypermedia mapper for incident resource
-func NewIncidentHypermediaMapper(serverAddr, currentURL string, actor user.Actor) IncidentHypermediaMapper {
+func NewIncidentHypermediaMapper(serverAddr, currentURL string, actor actor.Actor) IncidentHypermediaMapper {
 	return IncidentHypermediaMapper{
 		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL, actor),
 	}

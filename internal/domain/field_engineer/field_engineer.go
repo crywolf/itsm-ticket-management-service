@@ -4,13 +4,14 @@ import (
 	"errors"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 )
 
-// FieldEngineer represents info about the user who initiated te API call
+// FieldEngineer represents a user who can solve the tickets
 type FieldEngineer struct {
 	uuid ref.UUID
 
-	BasicUserUUID ref.UUID
+	BasicUser user.BasicUser
 }
 
 // UUID getter
