@@ -7,15 +7,16 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 )
 
 // NewIncidentService creates the incident service
-func NewIncidentService(r IncidentRepository) IncidentService {
+func NewIncidentService(r repository.IncidentRepository) IncidentService {
 	return &service{r}
 }
 
 type service struct {
-	r IncidentRepository
+	r repository.IncidentRepository
 }
 
 func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, params api.CreateIncidentParams) (ref.UUID, error) {

@@ -10,10 +10,8 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
-	grpc2http "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/status"
 )
 
 // Server is a http.Handler with dependencies
@@ -98,8 +96,6 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	actorUser, err := s.externalUserService.ActorFromRequest(ctx, authToken, channelID, r.Header.Get("on_behalf"))
 	if err != nil {
 		s.logger.Errorw("externalUserService.ActorFromRequest failed:", "error", err)
-		httpStatusCode := grpc2http.HTTPStatusFromCode(status.Code(err))
-		err := presenters.WrapErrorf(err, httpStatusCode, "could not retrieve correct user info from user service")
 		s.presenters.base.RenderError(w, "", err)
 		return
 	}

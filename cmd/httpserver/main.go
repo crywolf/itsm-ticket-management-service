@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -9,7 +10,7 @@ import (
 	"time"
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
-	basicusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/basic_user_service"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository/memory"
@@ -17,6 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// for testing with in-memory repository
 type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
@@ -36,13 +38,25 @@ func main() {
 	incidentRepository := &memory.IncidentRepositoryMemory{
 		Clock: realClock{},
 	}
-	incidentService := incidentsvc.NewIncidentService(incidentRepository)
 
 	basicUserRepository := &memory.BasicUserRepositoryMemory{}
-	basicUserService := basicusersvc.NewBasicUserService(basicUserRepository)
+	// add test user - just for playing and testing
+	_, err := basicUserRepository.AddBasicUser(context.Background(), "", user.BasicUser{
+		ExternalUserUUID: "123456789",
+		Name:             "Jan",
+		Surname:          "Novák",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	incidentService := incidentsvc.NewIncidentService(incidentRepository)
 
 	// External user service fetches user data from external service
-	externalUserService, err := externalusersvc.NewService(basicUserService)
+	externalUserService, err := externalusersvc.NewService(basicUserRepository)
 	if err != nil {
 		logger.Fatalw("could not create external user service", "error", err)
 	}

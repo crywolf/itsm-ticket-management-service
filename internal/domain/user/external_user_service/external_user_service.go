@@ -2,11 +2,13 @@ package externalusersvc
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	basicusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/basic_user_service"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	usermanagement "github.com/KompiTech/itsm-user-service/api/userservice"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -30,7 +32,7 @@ type ServiceCloser interface {
 }
 
 // NewService creates new user service with initialized client for connection to external user service
-func NewService(basicUserService basicusersvc.BasicUserService) (ServiceCloser, error) {
+func NewService(basicUserRepository repository.BasicUserRepository) (ServiceCloser, error) {
 	conn, err := grpc.Dial(
 		viper.GetString("UserServiceGRPCDialTarget"),
 		grpc.WithInsecure(),
@@ -40,28 +42,29 @@ func NewService(basicUserService basicusersvc.BasicUserService) (ServiceCloser, 
 	}
 
 	return &userService{
-		conn:             conn,
-		client:           usermanagement.NewUserManagementServiceClient(conn),
-		basicUserService: basicUserService,
+		conn:                conn,
+		client:              usermanagement.NewUserManagementServiceClient(conn),
+		basicUserRepository: basicUserRepository,
 	}, nil
 }
 
 type userService struct {
-	conn             *grpc.ClientConn
-	client           usermanagement.UserManagementServiceClient
-	basicUserService basicusersvc.BasicUserService
+	conn                *grpc.ClientConn
+	client              usermanagement.UserManagementServiceClient
+	basicUserRepository repository.BasicUserRepository
 }
 
 func (s userService) Close() error {
 	return s.conn.Close()
 }
 
-func (s userService) ActorFromRequest(ctx context.Context,authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error) {
+func (s userService) ActorFromRequest(ctx context.Context, authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error) {
 	basicUser, err := s.basicUserFromRequest(ctx, authToken, channelID, onBehalf)
 	if err != nil {
 		return actor.Actor{}, err
 	}
 
+	fmt.Println(basicUser)
 	actorUser := actor.Actor{
 		BasicUser: basicUser,
 	}
@@ -87,18 +90,25 @@ func (s userService) basicUserFromRequest(ctx context.Context, authToken string,
 	if onBehalf != "" {
 		resp, err = s.client.UserGet(grpcCtx, &usermanagement.UserRequest{Uuid: onBehalf})
 		if err != nil {
+			err = domain.WrapErrorf(err, domain.ErrorCodeUnknown, "authorization failed")
 			return user.BasicUser{}, err
 		}
 	} else {
 		resp, err = s.client.UserGetMyPersonalDetails(grpcCtx, &emptypb.Empty{})
 		if err != nil {
+			err = domain.WrapErrorf(err, domain.ErrorCodeUnknown, "authorization failed")
 			return user.BasicUser{}, err
 		}
 	}
 
 	u := resp.GetResult()
 
-	// take returned ExternalUserUUID and get BasicUser from repository
+	//	take returned ExternalUserUUID and get BasicUser from repository
 	externalID := ref.ExternalUserUUID(u.Uuid)
-	return s.basicUserService.GetBasicUserByExternalID(ctx, channelID, externalID)
+	basicUser, err := s.basicUserRepository.GetBasicUserByExternalID(ctx, channelID, externalID)
+	if err != nil {
+		err = domain.WrapErrorf(err, domain.ErrorCodeUserNotAuthorized, "user could not be authorized")
+	}
+
+	return basicUser, err
 }
