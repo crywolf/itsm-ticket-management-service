@@ -1,4 +1,4 @@
-package usersvc
+package externalusersvc
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	basicusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/basic_user_service"
 	usermanagement "github.com/KompiTech/itsm-user-service/api/userservice"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -17,7 +18,7 @@ import (
 type Service interface {
 	// ActorFromRequest calls external use service and returns an Actor object that represents a user who initiated the request
 	// or about user this request is made on behalf of
-	ActorFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error)
+	ActorFromRequest(ctx context.Context, authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error)
 }
 
 // ServiceCloser provides Service functionality plus allows to close connection to external service
@@ -29,7 +30,7 @@ type ServiceCloser interface {
 }
 
 // NewService creates new user service with initialized client for connection to external user service
-func NewService() (ServiceCloser, error) {
+func NewService(basicUserService basicusersvc.BasicUserService) (ServiceCloser, error) {
 	conn, err := grpc.Dial(
 		viper.GetString("UserServiceGRPCDialTarget"),
 		grpc.WithInsecure(),
@@ -39,22 +40,24 @@ func NewService() (ServiceCloser, error) {
 	}
 
 	return &userService{
-		conn:   conn,
-		client: usermanagement.NewUserManagementServiceClient(conn),
+		conn:             conn,
+		client:           usermanagement.NewUserManagementServiceClient(conn),
+		basicUserService: basicUserService,
 	}, nil
 }
 
 type userService struct {
-	conn   *grpc.ClientConn
-	client usermanagement.UserManagementServiceClient
+	conn             *grpc.ClientConn
+	client           usermanagement.UserManagementServiceClient
+	basicUserService basicusersvc.BasicUserService
 }
 
 func (s userService) Close() error {
 	return s.conn.Close()
 }
 
-func (s userService) ActorFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error) {
-	basicUser, err := s.basicUserFromRequest(authToken, channelID, onBehalf)
+func (s userService) ActorFromRequest(ctx context.Context,authToken string, channelID ref.ChannelID, onBehalf string) (actor.Actor, error) {
+	basicUser, err := s.basicUserFromRequest(ctx, authToken, channelID, onBehalf)
 	if err != nil {
 		return actor.Actor{}, err
 	}
@@ -70,24 +73,24 @@ func (s userService) ActorFromRequest(authToken string, channelID ref.ChannelID,
 	return actorUser, nil
 }
 
-func (s userService) basicUserFromRequest(authToken string, channelID ref.ChannelID, onBehalf string) (user.BasicUser, error) {
+func (s userService) basicUserFromRequest(ctx context.Context, authToken string, channelID ref.ChannelID, onBehalf string) (user.BasicUser, error) {
 	md := metadata.New(map[string]string{
 		"grpc-metadata-space": channelID.String(),
 		"authorization":       authToken,
 	})
 
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	grpcCtx := metadata.NewOutgoingContext(context.Background(), md)
 
 	var resp *usermanagement.UserPersonalDetailsResponse
 	var err error
 
 	if onBehalf != "" {
-		resp, err = s.client.UserGet(ctx, &usermanagement.UserRequest{Uuid: onBehalf})
+		resp, err = s.client.UserGet(grpcCtx, &usermanagement.UserRequest{Uuid: onBehalf})
 		if err != nil {
 			return user.BasicUser{}, err
 		}
 	} else {
-		resp, err = s.client.UserGetMyPersonalDetails(ctx, &emptypb.Empty{})
+		resp, err = s.client.UserGetMyPersonalDetails(grpcCtx, &emptypb.Empty{})
 		if err != nil {
 			return user.BasicUser{}, err
 		}
@@ -95,15 +98,7 @@ func (s userService) basicUserFromRequest(authToken string, channelID ref.Channe
 
 	u := resp.GetResult()
 
-	// TODO - take returned ExternalUserUUID and get BasicUser from repository
-
-	userData := user.BasicUser{
-		ExternalUserUUID: ref.ExternalUserUUID(u.Uuid),
-		Name:             u.Name,
-		Surname:          u.Surname,
-		OrgName:          u.OrgName,
-		OrgDisplayName:   u.OrgDisplayName,
-	}
-
-	return userData, nil
+	// take returned ExternalUserUUID and get BasicUser from repository
+	externalID := ref.ExternalUserUUID(u.Uuid)
+	return s.basicUserService.GetBasicUserByExternalID(ctx, channelID, externalID)
 }

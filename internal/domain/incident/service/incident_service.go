@@ -9,7 +9,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 )
 
-// NewIncidentService creates an incident service
+// NewIncidentService creates the incident service
 func NewIncidentService(r IncidentRepository) IncidentService {
 	return &service{r}
 }

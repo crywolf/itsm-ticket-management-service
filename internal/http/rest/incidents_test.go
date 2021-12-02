@@ -36,7 +36,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 	t.Parallel()
 
 	t.Run("when body payload is not valid JSON", func(t *testing.T) {
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -44,7 +44,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalLocationAddress: "http://service.url",
-			UserService:             us,
+			ExternalUserService:     us,
 		})
 
 		payload := []byte(`{"invalid json request"}`)
@@ -72,7 +72,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 
 	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -80,7 +80,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalLocationAddress: "http://service.url",
-			UserService:             us,
+			ExternalUserService:     us,
 		})
 
 		payload := []byte(`{
@@ -110,7 +110,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 
 	t.Run("when body payload is valid", func(t *testing.T) {
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -123,7 +123,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 			Logger:                  logger,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
-			UserService:             us,
+			ExternalUserService:     us,
 		})
 
 		payload := []byte(`{
@@ -196,7 +196,7 @@ func TestGetIncidentHandler(t *testing.T) {
 	t.Run("when incident does not exist", func(t *testing.T) {
 		uuid := "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
 
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -207,7 +207,7 @@ func TestGetIncidentHandler(t *testing.T) {
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
-			UserService:             us,
+			ExternalUserService:     us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
@@ -253,7 +253,7 @@ func TestGetIncidentHandler(t *testing.T) {
 		err = retInc.CreatedUpdated.SetUpdated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -264,7 +264,7 @@ func TestGetIncidentHandler(t *testing.T) {
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
-			UserService:             us,
+			ExternalUserService:     us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
@@ -397,7 +397,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		require.NoError(t, err)
 		list = append(list, fInc2)
 
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actorUser, nil)
 
@@ -407,7 +407,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
-			UserService:             us,
+			ExternalUserService:     us,
 			IncidentService:         incidentSvc,
 			ExternalLocationAddress: "http://service.url",
 		})

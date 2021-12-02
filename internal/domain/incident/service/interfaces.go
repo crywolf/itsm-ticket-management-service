@@ -21,7 +21,7 @@ type IncidentService interface {
 	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor) ([]incident.Incident, error)
 }
 
-// IncidentRepository provides reading access to the incidents repository
+// IncidentRepository provides access to the incidents repository
 type IncidentRepository interface {
 	// AddIncident adds the given incident to the repository
 	AddIncident(ctx context.Context, channelID ref.ChannelID, inc incident.Incident) (ref.UUID, error)

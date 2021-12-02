@@ -9,7 +9,8 @@ import (
 	"time"
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
-	usersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/service"
+	basicusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/basic_user_service"
+	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository/memory"
 	"github.com/spf13/viper"
@@ -32,15 +33,18 @@ func main() {
 
 	loadEnvConfiguration()
 
-	r := &memory.IncidentRepositoryMemory{
+	incidentRepository := &memory.IncidentRepositoryMemory{
 		Clock: realClock{},
 	}
-	incidentService := incidentsvc.NewIncidentService(r)
+	incidentService := incidentsvc.NewIncidentService(incidentRepository)
 
-	// User service fetches user data from external service
-	userService, err := usersvc.NewService()
+	basicUserRepository := &memory.BasicUserRepositoryMemory{}
+	basicUserService := basicusersvc.NewBasicUserService(basicUserRepository)
+
+	// External user service fetches user data from external service
+	externalUserService, err := externalusersvc.NewService(basicUserService)
 	if err != nil {
-		logger.Fatal("could not create user service", "error", err)
+		logger.Fatalw("could not create external user service", "error", err)
 	}
 
 	// HTTP server
@@ -48,7 +52,7 @@ func main() {
 		Addr:                    viper.GetString("HTTPBindAddress"),
 		URISchema:               "http://",
 		Logger:                  logger,
-		UserService:             userService,
+		ExternalUserService:     externalUserService,
 		IncidentService:         incidentService,
 		ExternalLocationAddress: viper.GetString("ExternalLocationAddress"),
 	})

@@ -8,7 +8,7 @@ import (
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	usersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/service"
+	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	grpc2http "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/julienschmidt/httprouter"
@@ -23,7 +23,7 @@ type Server struct {
 	router    *httprouter.Router
 	logger    *zap.SugaredLogger
 	//authService             auth.Service
-	userService             usersvc.Service
+	externalUserService     externalusersvc.Service
 	incidentService         incidentsvc.IncidentService
 	inputPayloadConverters  jsonInputPayloadConverters
 	presenters              jsonPresenters
@@ -36,7 +36,7 @@ type Config struct {
 	URISchema string
 	Logger    *zap.SugaredLogger
 	//AuthService             auth.Service
-	UserService             usersvc.Service
+	ExternalUserService     externalusersvc.Service
 	IncidentService         incidentsvc.IncidentService
 	ExternalLocationAddress string
 }
@@ -56,7 +56,7 @@ func NewServer(cfg Config) *Server {
 		router:    r,
 		logger:    cfg.Logger,
 		//authService:             cfg.AuthService,
-		userService:             cfg.UserService,
+		externalUserService:     cfg.ExternalUserService,
 		incidentService:         cfg.IncidentService,
 		ExternalLocationAddress: cfg.ExternalLocationAddress,
 	}
@@ -95,9 +95,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get Actor from the external user service and add it to the request
-	actorUser, err := s.userService.ActorFromRequest(authToken, channelID, r.Header.Get("on_behalf"))
+	actorUser, err := s.externalUserService.ActorFromRequest(ctx, authToken, channelID, r.Header.Get("on_behalf"))
 	if err != nil {
-		s.logger.Error("AddUserInfo middleware: ActorFromRequest failed:", "error", err)
+		s.logger.Errorw("externalUserService.ActorFromRequest failed:", "error", err)
 		httpStatusCode := grpc2http.HTTPStatusFromCode(status.Code(err))
 		err := presenters.WrapErrorf(err, httpStatusCode, "could not retrieve correct user info from user service")
 		s.presenters.base.RenderError(w, "", err)

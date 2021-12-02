@@ -77,14 +77,14 @@ func TestAuthorization(t *testing.T) {
 	})
 
 	t.Run("when user service failed to retrieve Actor and put it in the request context", func(t *testing.T) {
-		us := new(mocks.UserServiceMock)
+		us := new(mocks.ExternalUserServiceMock)
 		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
 			Return(actor.Actor{}, errors.New("some user service error"))
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
-			UserService:             us,
+			ExternalUserService:     us,
 			ExternalLocationAddress: "http://service.url",
 		})
 
