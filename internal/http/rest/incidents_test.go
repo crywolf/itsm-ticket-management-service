@@ -14,6 +14,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -324,9 +325,64 @@ func TestListIncidentsHandler(t *testing.T) {
 
 	t.Parallel()
 
+	t.Run("when no incidents were found", func(t *testing.T) {
+		expectedJSON := `{
+			"total":0,
+			"size":0,
+			"page":1,
+			"_links":{
+				"self":{"href":"http://service.url/incidents"}
+			}
+		}`
+
+		us := new(mocks.ExternalUserServiceMock)
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
+			Return(actorUser, nil)
+
+		incidentSvc := new(mocks.IncidentServiceMock)
+		var emptyList []incident.Incident
+		result := repository.IncidentList{
+			Result: emptyList,
+			Total:  0,
+			Size:   0,
+			Page:   1,
+		}
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), uint(10)).Return(result, nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalUserService:     us,
+			IncidentService:         incidentSvc,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		req := httptest.NewRequest("GET", "/incidents", nil)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
 	t.Run("when some incidents were found", func(t *testing.T) {
 		expectedJSON := `{
-			"result":
+			"total":2,
+			"size":2,
+			"page":1,
+			"_embedded":
 				[{
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 					"number": "Accc265871",
@@ -402,7 +458,13 @@ func TestListIncidentsHandler(t *testing.T) {
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser).Return(list, nil)
+		result := repository.IncidentList{
+			Result: list,
+			Total:  2,
+			Size:   2,
+			Page:   1,
+		}
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), uint(10)).Return(result, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
@@ -427,6 +489,40 @@ func TestListIncidentsHandler(t *testing.T) {
 		}
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
+	t.Run("when 'page' parameter in HTTP query is incorrect", func(t *testing.T) {
+		expectedJSON := `{"error":"incorrect 'page' parameter: '0'"}`
+
+		us := new(mocks.ExternalUserServiceMock)
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
+			Return(actorUser, nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalUserService:     us,
+			ExternalLocationAddress: "http://service.url",
+		})
+
+		req := httptest.NewRequest("GET", "/incidents?page=0", nil)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
 		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
 
 		assert.JSONEq(t, expectedJSON, string(b), "response does not match")

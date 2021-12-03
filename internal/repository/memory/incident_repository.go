@@ -81,19 +81,38 @@ func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelI
 }
 
 // ListIncidents returns the list of incidents from the repository
-func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID) ([]incident.Incident, error) {
+func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID, page, perPage uint) (repository.IncidentList, error) {
 	var list []incident.Incident
 
-	for _, storedInc := range r.incidents {
+	total := uint(len(r.incidents))
+	start := (page - 1) * perPage
+	if start >= total {
+		start = total
+	}
+
+	end := start + perPage
+	if end > total {
+		end = total
+	}
+
+	perPageList := r.incidents[start:end]
+
+	for _, storedInc := range perPageList {
 		inc, err := r.convertStoredToDomainIncident(storedInc)
 		if err != nil {
-			return nil, err
+			return repository.IncidentList{}, err
 		}
 
 		list = append(list, inc)
 	}
 
-	return list, nil
+	incidentList := repository.IncidentList{
+		Result: list,
+		Total:  int(total),
+		Size:   int(end - start),
+		Page:   int(page),
+	}
+	return incidentList, nil
 }
 
 func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {

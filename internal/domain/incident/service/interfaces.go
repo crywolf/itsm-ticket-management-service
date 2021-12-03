@@ -7,6 +7,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 )
 
 // IncidentService provides incident operations
@@ -18,5 +19,5 @@ type IncidentService interface {
 	GetIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID) (incident.Incident, error)
 
 	// ListIncidents returns the list of incidents from the repository
-	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor) ([]incident.Incident, error)
+	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, page, perPage uint) (repository.IncidentList, error)
 }

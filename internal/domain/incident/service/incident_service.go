@@ -40,6 +40,6 @@ func (s *service) GetIncident(ctx context.Context, channelID ref.ChannelID, acto
 	return s.r.GetIncident(ctx, channelID, ID)
 }
 
-func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor) ([]incident.Incident, error) {
-	return s.r.ListIncidents(ctx, channelID)
+func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, page, perPage uint) (repository.IncidentList, error) {
+	return s.r.ListIncidents(ctx, channelID, page, perPage)
 }

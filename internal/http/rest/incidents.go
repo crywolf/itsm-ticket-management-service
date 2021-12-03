@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
@@ -11,6 +12,10 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/julienschmidt/httprouter"
 )
+
+// PerPage is number of records to be shown per one page in the list of items
+// TODO move to some settings
+const PerPage uint = 10
 
 func (s Server) registerIncidentRoutes() {
 	s.router.POST("/incidents", s.CreateIncident())
@@ -128,7 +133,29 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actorUser)
+		//////////////
+		// TODO move query parsing with pagination somewhere else
+		var page64 uint64
+		var page uint
+		queryValues := r.URL.Query()
+		pageParam := queryValues.Get("page")
+		if pageParam == "" {
+			pageParam = "1"
+		}
+		if page64, err = strconv.ParseUint(pageParam, 10, 0); err != nil {
+			err = presenters.NewErrorf(http.StatusBadRequest, "incorrect 'page' parameter: '%s'", pageParam)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+		if page64 == 0 {
+			err = presenters.NewErrorf(http.StatusBadRequest, "incorrect 'page' parameter: '%s'", pageParam)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+		page = uint(page64)
+		//////////////
+
+		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actorUser, page, PerPage)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)

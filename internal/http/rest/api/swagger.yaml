@@ -452,13 +452,32 @@ responses:
     description: A list of incidents
     schema:
       properties:
-        _links:
-          $ref: '#/definitions/HypermediaLinks'
-        result:
+        _embedded:
           items:
             $ref: '#/definitions/IncidentResponse'
           type: array
           x-go-name: Result
+        _links:
+          $ref: '#/definitions/HypermediaLinks'
+        page:
+          description: Current page number
+          format: int64
+          type: integer
+          x-go-name: Page
+        size:
+          description: Number of elements on the current page
+          format: int64
+          type: integer
+          x-go-name: Size
+        total:
+          description: Total number of elements in the list
+          format: int64
+          type: integer
+          x-go-name: Total
+      required:
+      - total
+      - size
+      - page
       type: object
   incidentResponse:
     description: Data structure representing a single incident

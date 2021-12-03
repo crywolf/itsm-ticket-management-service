@@ -7,6 +7,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -28,7 +29,7 @@ func (i *IncidentServiceMock) GetIncident(_ context.Context, channelID ref.Chann
 }
 
 // ListIncidents mock
-func (i *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.ChannelID, actor actor.Actor) ([]incident.Incident, error) {
-	args := i.Called(channelID, actor)
-	return args.Get(0).([]incident.Incident), args.Error(1)
+func (i *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.ChannelID, actor actor.Actor, page, perPage uint) (repository.IncidentList, error) {
+	args := i.Called(channelID, actor, page, perPage)
+	return args.Get(0).(repository.IncidentList), args.Error(1)
 }

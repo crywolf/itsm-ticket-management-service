@@ -103,7 +103,7 @@ func (s userService) basicUserFromRequest(ctx context.Context, authToken string,
 
 	u := resp.GetResult()
 
-	//	take returned ExternalUserUUID and get BasicUser from repository
+	//take returned ExternalUserUUID and get BasicUser from repository
 	externalID := ref.ExternalUserUUID(u.Uuid)
 	basicUser, err := s.basicUserRepository.GetBasicUserByExternalID(ctx, channelID, externalID)
 	if err != nil {

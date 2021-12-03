@@ -42,7 +42,7 @@ func main() {
 	basicUserRepository := &memory.BasicUserRepositoryMemory{}
 	// add test user - just for playing and testing
 	_, err := basicUserRepository.AddBasicUser(context.Background(), "", user.BasicUser{
-		ExternalUserUUID: "123456789",
+		ExternalUserUUID: "83b231f2-5898-2658-70f4-5db03d1ccbc1",
 		Name:             "Jan",
 		Surname:          "Novák",
 		OrgDisplayName:   "KompiTech",

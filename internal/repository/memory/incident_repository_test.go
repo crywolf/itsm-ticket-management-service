@@ -94,12 +94,15 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	_, err = repo.AddIncident(ctx, channelID, inc2)
 	require.NoError(t, err)
 
-	incidents, err := repo.ListIncidents(ctx, channelID)
+	// first page
+	incidentsList, err := repo.ListIncidents(ctx, channelID, 1, 10)
 	require.NoError(t, err)
 
-	assert.Len(t, incidents, 2)
+	list := incidentsList.Result
 
-	for i, retInc := range incidents {
+	assert.Len(t, list, 2)
+
+	for i, retInc := range list {
 		var inc incident.Incident
 		switch i {
 		case 0:
@@ -123,4 +126,18 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		assert.Equal(t, inc.CreatedUpdated.UpdatedBy(), retInc.CreatedUpdated.UpdatedBy())
 		assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.UpdatedAt())
 	}
+
+	// second page out of range
+	incidentsList, err = repo.ListIncidents(ctx, channelID, 2, 10)
+	require.NoError(t, err)
+
+	list = incidentsList.Result
+	assert.Len(t, list, 0)
+
+	// first page with small number per page
+	incidentsList, err = repo.ListIncidents(ctx, channelID, 1, 1)
+	require.NoError(t, err)
+
+	list = incidentsList.Result
+	assert.Len(t, list, 1)
 }

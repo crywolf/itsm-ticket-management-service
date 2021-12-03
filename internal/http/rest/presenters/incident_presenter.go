@@ -7,6 +7,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"go.uber.org/zap"
 )
 
@@ -37,10 +38,10 @@ func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incide
 	p.renderJSON(w, incResp)
 }
 
-func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList []incident.Incident, listRoute string, hypermediaMapper hypermedia.Mapper) {
+func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList repository.IncidentList, listRoute string, hypermediaMapper hypermedia.Mapper) {
 	var apiList []api.IncidentResponse
 
-	for _, inc := range incidentList {
+	for _, inc := range incidentList.Result {
 		apiInc := p.convertIncidentToAPI(inc)
 
 		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
@@ -63,6 +64,9 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 
 	resp := api.IncidentListResponse{
 		Result: apiList,
+		Total:  incidentList.Total,
+		Size:   incidentList.Size,
+		Page:   incidentList.Page,
 		Links:  listLinks,
 	}
 
