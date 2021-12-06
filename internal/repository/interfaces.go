@@ -32,5 +32,5 @@ type IncidentRepository interface {
 // IncidentList is a container with list of results and pagination info
 type IncidentList struct {
 	Result []incident.Incident
-	Pagination
+	*Pagination
 }

@@ -18,5 +18,5 @@ type IncidentPresenter interface {
 
 	// RenderIncidentList encodes list of incidents and writes it to 'w'.  Also sets correct Content-Type header.
 	// It does not otherwise end the request; the caller should ensure no further writes are done to 'w'.
-	RenderIncidentList(w http.ResponseWriter, incidentList repository.IncidentList, listRoute string, hypermediaMapper hypermedia.Mapper)
+	RenderIncidentList(w http.ResponseWriter, incidentList repository.IncidentList, hypermediaMapper hypermedia.Mapper)
 }

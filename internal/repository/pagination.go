@@ -2,13 +2,15 @@ package repository
 
 // Pagination encapsulates information about pagination data
 type Pagination struct {
-	Total int
-	Size  int
-	Page  int
-	Prev  int
-	Next  int
-	First int
-	Last  int
+	Total             int
+	Size              int
+	Page              int
+	Prev              int
+	Next              int
+	First             int
+	Last              int
+	FirstElementIndex int
+	LastElementIndex  int
 }
 
 // NewPagination creates new initialized pagination object
@@ -42,12 +44,14 @@ func NewPagination(collectionLength int, page, perPage uint) *Pagination {
 	}
 
 	return &Pagination{
-		Total: int(total),
-		Size:  int(end - start),
-		Page:  int(page),
-		Prev:  int(prev),
-		Next:  int(next),
-		First: 1,
-		Last:  int(last),
+		Total:             int(total),
+		Size:              int(end - start),
+		Page:              int(page),
+		Prev:              int(prev),
+		Next:              int(next),
+		First:             1,
+		Last:              int(last),
+		FirstElementIndex: int(start),
+		LastElementIndex:  int(end),
 	}
 }

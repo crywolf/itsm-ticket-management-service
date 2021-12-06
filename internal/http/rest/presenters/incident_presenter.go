@@ -39,7 +39,7 @@ func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incide
 	p.renderJSON(w, incResp)
 }
 
-func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList repository.IncidentList, listRoute string, hypermediaMapper hypermedia.Mapper) {
+func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentList repository.IncidentList, hypermediaMapper hypermedia.Mapper) {
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList.Result {

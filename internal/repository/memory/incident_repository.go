@@ -81,40 +81,17 @@ func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelI
 }
 
 // ListIncidents returns the list of incidents from the repository
-func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID, page, perPage uint) (repository.IncidentList, error) {
+func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID, page, itemsPerPage uint) (repository.IncidentList, error) {
 	var list []incident.Incident
 
-	// TODO move to repository.Pagination
-	total := uint(len(r.incidents))
+	total := len(r.incidents)
 
-	next := page + 1
-	prev := page - 1
+	pagination := repository.NewPagination(total, page, itemsPerPage)
 
-	if page == 1 && total < perPage {
-		prev = 0
-	}
+	firstElementIndex := pagination.FirstElementIndex
+	lastElementIndex := pagination.LastElementIndex
 
-	start := (page - 1) * perPage
-	if start >= total {
-		start = total
-	}
-
-	end := start + perPage
-	if end > total {
-		end = total
-		next = 0
-	}
-
-	last := total / perPage
-	if next > last {
-		next = 0
-	}
-
-	if last == 0 {
-		last = 1
-	}
-
-	perPageList := r.incidents[start:end]
+	perPageList := r.incidents[firstElementIndex:lastElementIndex]
 
 	for _, storedInc := range perPageList {
 		inc, err := r.convertStoredToDomainIncident(storedInc)
@@ -126,16 +103,8 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 	}
 
 	incidentList := repository.IncidentList{
-		Result: list,
-		Pagination: repository.Pagination{
-			Total: int(total),
-			Size:  int(end - start),
-			Page:  int(page),
-			Prev:  int(prev),
-			Next:  int(next),
-			First: 1,
-			Last:  int(last),
-		},
+		Result:     list,
+		Pagination: pagination,
 	}
 	return incidentList, nil
 }

@@ -3,7 +3,6 @@ package rest
 import (
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
@@ -13,10 +12,6 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/julienschmidt/httprouter"
 )
-
-// PerPage is number of records to be shown per one page in the list of items
-// TODO move to some settings
-const PerPage uint = 10
 
 func (s Server) registerIncidentRoutes() {
 	s.router.POST("/incidents", s.CreateIncident())
@@ -82,7 +77,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		if id == "" {
 			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
 			s.logger.Errorw("GetIncident handler failed", "error", err)
-			s.presenters.incident.RenderError(w, "", err)
+			s.presenters.base.RenderError(w, "", err)
 			return
 		}
 
@@ -94,14 +89,14 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 		actorUser, err := s.actorFromRequest(r)
 		if err != nil {
 			s.logger.Errorw("GetIncident handler failed", "error", err)
-			s.presenters.incident.RenderError(w, "", err)
+			s.presenters.base.RenderError(w, "", err)
 			return
 		}
 
 		inc, err := s.incidentService.GetIncident(r.Context(), channelID, actorUser, ref.UUID(id))
 		if err != nil {
 			s.logger.Errorw("GetIncident handler failed", "ID", id, "error", err)
-			s.presenters.incident.RenderError(w, "incident not found", err)
+			s.presenters.base.RenderError(w, "incident not found", err)
 			return
 		}
 
@@ -130,41 +125,25 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 		actorUser, err := s.actorFromRequest(r)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
-			s.presenters.incident.RenderError(w, "", err)
+			s.presenters.base.RenderError(w, "", err)
 			return
 		}
 
-		//////////////
-		// TODO move query parsing with pagination somewhere else
-		var page64 uint64
-		var page uint
-		queryValues := r.URL.Query()
-		pageParam := queryValues.Get("page")
-		if pageParam == "" {
-			pageParam = "1"
-		}
-		if page64, err = strconv.ParseUint(pageParam, 10, 0); err != nil {
-			err = presenters.NewErrorf(http.StatusBadRequest, "incorrect 'page' parameter: '%s'", pageParam)
-			s.presenters.incident.RenderError(w, "", err)
+		paginationParams, err := s.PaginationParams(r, actorUser)
+		if err != nil {
+			s.presenters.base.RenderError(w, "", err)
 			return
 		}
-		if page64 == 0 {
-			err = presenters.NewErrorf(http.StatusBadRequest, "incorrect 'page' parameter: '%s'", pageParam)
-			s.presenters.incident.RenderError(w, "", err)
-			return
-		}
-		page = uint(page64)
-		//////////////
 
-		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actorUser, page, PerPage)
+		list, err := s.incidentService.ListIncidents(r.Context(), channelID, actorUser, paginationParams)
 		if err != nil {
 			s.logger.Errorw("ListIncidents handler failed", "error", err)
-			s.presenters.incident.RenderError(w, "", err)
+			s.presenters.base.RenderError(w, "", err)
 			return
 		}
 
 		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL, actorUser)
-		s.presenters.incident.RenderIncidentList(w, list, listIncidentsRoute, hypermediaMapper)
+		s.presenters.incident.RenderIncidentList(w, list, hypermediaMapper)
 	}
 }
 

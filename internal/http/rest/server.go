@@ -9,6 +9,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
+	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
@@ -181,4 +182,9 @@ func (s Server) assertAuthToken(w http.ResponseWriter, r *http.Request) (string,
 func authTokenFromRequest(r *http.Request) (string, bool) {
 	ch, ok := r.Context().Value(authKey).(string)
 	return ch, ok
+}
+
+// PaginationParams parses request query and returns params with information about requested page and items per page to be displayed
+func (s Server) PaginationParams(r *http.Request, actorUser actor.Actor) (converters.PaginationParams, error) {
+	return converters.NewPaginationParams(r, actorUser)
 }

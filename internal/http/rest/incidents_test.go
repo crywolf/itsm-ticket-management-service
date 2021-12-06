@@ -345,7 +345,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		var emptyList []incident.Incident
 		result := repository.IncidentList{
 			Result: emptyList,
-			Pagination: repository.Pagination{
+			Pagination: &repository.Pagination{
 				Total: 0,
 				Size:  0,
 				Page:  1,
@@ -353,7 +353,7 @@ func TestListIncidentsHandler(t *testing.T) {
 				Last:  1,
 			},
 		}
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), PerPage).Return(result, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, mock.AnythingOfType("*converters.paginationParams")).Return(result, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
@@ -468,7 +468,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		incidentSvc := new(mocks.IncidentServiceMock)
 		result := repository.IncidentList{
 			Result: list,
-			Pagination: repository.Pagination{
+			Pagination: &repository.Pagination{
 				Total: 2,
 				Size:  2,
 				Page:  1,
@@ -476,7 +476,7 @@ func TestListIncidentsHandler(t *testing.T) {
 				Last:  1,
 			},
 		}
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), PerPage).Return(result, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, mock.AnythingOfType("*converters.paginationParams")).Return(result, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",

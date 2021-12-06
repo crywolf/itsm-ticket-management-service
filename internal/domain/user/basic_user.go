@@ -6,6 +6,9 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 )
 
+// DefaultItemsPerPage is a default number of records to be shown per one page in the list of items
+const DefaultItemsPerPage uint = 10
+
 // BasicUser represents basic info about the user in external service (user microservice)
 type BasicUser struct {
 	uuid ref.UUID
@@ -36,4 +39,9 @@ func (e *BasicUser) SetUUID(v ref.UUID) error {
 	}
 	e.uuid = v
 	return nil
+}
+
+// ItemsPerPage returns a number of records to be shown per one page in the list of items for this user
+func (e BasicUser) ItemsPerPage() uint {
+	return DefaultItemsPerPage
 }

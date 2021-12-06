@@ -7,6 +7,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 )
 
@@ -36,10 +37,10 @@ func (s *service) CreateIncident(ctx context.Context, channelID ref.ChannelID, a
 	return s.r.AddIncident(ctx, channelID, newIncident)
 }
 
-func (s *service) GetIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID) (incident.Incident, error) {
+func (s *service) GetIncident(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, ID ref.UUID) (incident.Incident, error) {
 	return s.r.GetIncident(ctx, channelID, ID)
 }
 
-func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, page, perPage uint) (repository.IncidentList, error) {
-	return s.r.ListIncidents(ctx, channelID, page, perPage)
+func (s *service) ListIncidents(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, params converters.PaginationParams) (repository.IncidentList, error) {
+	return s.r.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
 }
