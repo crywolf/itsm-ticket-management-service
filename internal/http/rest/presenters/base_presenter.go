@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 	"go.uber.org/zap"
 )
 
@@ -96,6 +98,71 @@ func (p BasePresenter) resourceToHypermediaLinks(domainObject hypermedia.Actions
 	} else {
 		hypermediaLinks.AppendSelfLink(hypermediaMapper.SelfLink())
 	}
+
+	return hypermediaLinks
+}
+
+func (p BasePresenter) hypermediaListLinks(hypermediaMapper hypermedia.Mapper, pagination *repository.Pagination) api.HypermediaListLinks {
+	hypermediaLinks := api.HypermediaListLinks{}
+
+	query := hypermediaMapper.RequestURL().Query()
+	url := *hypermediaMapper.RequestURL()
+	first := url
+	last := url
+	prev := url
+	next := url
+
+	if pagination.First == 1 {
+		query.Del("page")
+	} else {
+		query.Set("page", strconv.Itoa(pagination.First))
+	}
+	first.RawQuery = query.Encode()
+
+	if pagination.Last == 1 {
+		query.Del("page")
+	} else {
+		query.Set("page", strconv.Itoa(pagination.Last))
+	}
+	last.RawQuery = query.Encode()
+
+	prevString := ""
+	if pagination.Prev == 1 {
+		query.Del("page")
+		prev.RawQuery = query.Encode()
+		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
+	} else if pagination.Prev > 1 {
+		query.Set("page", strconv.Itoa(pagination.Prev))
+		prev.RawQuery = query.Encode()
+		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
+	}
+
+	nextString := ""
+	if pagination.Next > 0 {
+		query.Set("page", strconv.Itoa(pagination.Next))
+		next.RawQuery = query.Encode()
+		nextString = fmt.Sprintf("%s%s", p.serverAddr, next.String())
+	}
+
+	hypermediaLinks["first"] = map[string]string{
+		"href": fmt.Sprintf("%s%s", p.serverAddr, first.String()),
+	}
+	hypermediaLinks["last"] = map[string]string{
+		"href": fmt.Sprintf("%s%s", p.serverAddr, last.String()),
+	}
+
+	if prevString != "" {
+		hypermediaLinks["prev"] = map[string]string{
+			"href": prevString,
+		}
+	}
+	if nextString != "" {
+		hypermediaLinks["next"] = map[string]string{
+			"href": nextString,
+		}
+	}
+
+	hypermediaLinks.AppendSelfLink(hypermediaMapper.SelfLink())
 
 	return hypermediaLinks
 }

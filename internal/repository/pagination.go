@@ -34,7 +34,16 @@ func NewPagination(collectionLength int, page, perPage uint) *Pagination {
 		next = 0
 	}
 
-	last := total / perPage
+	lastIndex := int(end) - 1
+	if lastIndex < 0 {
+		lastIndex = 0
+	}
+
+	last := (total / perPage) + 1
+	if (total % perPage) == 0 {
+		last--
+	}
+
 	if next > last {
 		next = 0
 	}
@@ -52,6 +61,6 @@ func NewPagination(collectionLength int, page, perPage uint) *Pagination {
 		First:             1,
 		Last:              int(last),
 		FirstElementIndex: int(start),
-		LastElementIndex:  int(end),
+		LastElementIndex:  lastIndex,
 	}
 }

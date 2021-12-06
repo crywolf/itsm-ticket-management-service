@@ -9,7 +9,7 @@ import (
 )
 
 // ActionLinks maps allowed resource domain actions to hypermedia action links
-type ActionLinks map[string]api.ActionLink
+type ActionLinks map[string]api.Link
 
 // Mapper maps domain object to hypermedia representation
 type Mapper interface {

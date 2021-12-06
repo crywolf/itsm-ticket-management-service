@@ -164,8 +164,8 @@ func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.Act
 	acts := hypermedia.ActionLinks{}
 
 	// TODO implement as a method on BaseHypermediaMapper
-	acts[incident.ActionCancel.String()] = api.ActionLink{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
-	acts[incident.ActionStartWorking.String()] = api.ActionLink{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}
+	acts[incident.ActionCancel.String()] = api.Link{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
+	acts[incident.ActionStartWorking.String()] = api.Link{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}
 
 	return acts
 }

@@ -1,9 +1,7 @@
 package presenters
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
@@ -43,64 +41,16 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 		apiList = append(apiList, incResp)
 	}
 
-	listLinks := api.HypermediaLinks{}
-	listLinks.AppendSelfLink(hypermediaMapper.SelfLink())
-
-	// TODO move to hypermedia object
-	query := hypermediaMapper.RequestURL().Query()
-	url := *hypermediaMapper.RequestURL()
-	first := url
-	last := url
-	prev := url
-	next := url
-
-	if incidentList.First == 1 {
-		query.Del("page")
-	} else {
-		query.Set("page", strconv.Itoa(incidentList.First))
-	}
-	first.RawQuery = query.Encode()
-
-	if incidentList.Last == 1 {
-		query.Del("page")
-	} else {
-		query.Set("page", strconv.Itoa(incidentList.Last))
-	}
-	last.RawQuery = query.Encode()
-
-	prevString := ""
-	if incidentList.Prev == 1 {
-		query.Del("page")
-		prev.RawQuery = query.Encode()
-		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
-	} else if incidentList.Prev > 1 {
-		query.Set("page", strconv.Itoa(incidentList.Prev))
-		prev.RawQuery = query.Encode()
-		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
-	}
-
-	nextString := ""
-	if incidentList.Next > 0 {
-		query.Set("page", strconv.Itoa(incidentList.Next))
-		next.RawQuery = query.Encode()
-		nextString = fmt.Sprintf("%s%s", p.serverAddr, next.String())
-	}
-
 	pagination := api.Pagination{
 		Total: incidentList.Total,
 		Size:  incidentList.Size,
 		Page:  incidentList.Page,
-		// TODO move it to _links{} in hypermedia | in IncidentListResponse Links: listLinks
-		First: fmt.Sprintf("%s%s", p.serverAddr, first.String()),
-		Last:  fmt.Sprintf("%s%s", p.serverAddr, last.String()),
-		Prev:  prevString,
-		Next:  nextString,
 	}
 
 	resp := api.IncidentListResponse{
 		Result:     apiList,
 		Pagination: pagination,
-		Links:      listLinks,
+		Links:      p.hypermediaListLinks(hypermediaMapper, incidentList.Pagination),
 	}
 
 	p.renderJSON(w, resp)

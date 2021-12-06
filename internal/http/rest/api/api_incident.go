@@ -69,8 +69,7 @@ type IncidentListResponse struct {
 	Pagination
 	Result []IncidentResponse `json:"_embedded,omitempty"`
 	// example: {self:{href:example.com}}
-	Links HypermediaLinks `json:"_links,omitempty"`
-	// TODO change it to new HypermediaListLinks
+	Links HypermediaListLinks `json:"_links,omitempty"`
 }
 
 // A list of incidents

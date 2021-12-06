@@ -330,10 +330,10 @@ func TestListIncidentsHandler(t *testing.T) {
 			"total":0,
 			"size":0,
 			"page":1,
-			"first":"http://service.url/incidents",
-			"last":"http://service.url/incidents",
 			"_links":{
-				"self":{"href":"http://service.url/incidents"}
+				"self":{"href":"http://service.url/incidents"},
+				"first":{"href":"http://service.url/incidents"},
+				"last":{"href":"http://service.url/incidents"}
 			}
 		}`
 
@@ -388,8 +388,6 @@ func TestListIncidentsHandler(t *testing.T) {
 			"total":2,
 			"size":2,
 			"page":1,
-			"first":"http://service.url/incidents",
-			"last":"http://service.url/incidents",
 			"_embedded":
 				[{
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
@@ -421,7 +419,9 @@ func TestListIncidentsHandler(t *testing.T) {
 					}
 				}],
 			"_links":{
-				"self":{"href":"http://service.url/incidents"}
+				"self":{"href":"http://service.url/incidents"},
+				"first":{"href":"http://service.url/incidents"},
+				"last":{"href":"http://service.url/incidents"}
 			}
 		}`
 

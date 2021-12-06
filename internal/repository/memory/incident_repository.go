@@ -91,7 +91,7 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 	firstElementIndex := pagination.FirstElementIndex
 	lastElementIndex := pagination.LastElementIndex
 
-	perPageList := r.incidents[firstElementIndex:lastElementIndex]
+	perPageList := r.incidents[firstElementIndex : lastElementIndex+1]
 
 	for _, storedInc := range perPageList {
 		inc, err := r.convertStoredToDomainIncident(storedInc)
