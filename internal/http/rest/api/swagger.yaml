@@ -459,13 +459,29 @@ responses:
           x-go-name: Result
         _links:
           $ref: '#/definitions/HypermediaLinks'
+        first:
+          description: First page link
+          type: string
+          x-go-name: First
+        last:
+          description: Last page link
+          type: string
+          x-go-name: Last
+        next:
+          description: Next page link
+          type: string
+          x-go-name: Next
         page:
           description: Current page number
           format: int64
           type: integer
           x-go-name: Page
+        prev:
+          description: Previous page link
+          type: string
+          x-go-name: Prev
         size:
-          description: Number of elements on the current page
+          description: Size of dataset of elements on the current page
           format: int64
           type: integer
           x-go-name: Size

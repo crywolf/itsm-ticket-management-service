@@ -98,6 +98,15 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	incidentsList, err := repo.ListIncidents(ctx, channelID, 1, 10)
 	require.NoError(t, err)
 
+	// pagination
+	assert.Equal(t, 2, incidentsList.Size)
+	assert.Equal(t, 2, incidentsList.Total)
+	assert.Equal(t, 1, incidentsList.Page)
+	assert.Equal(t, 1, incidentsList.First)
+	assert.Equal(t, 1, incidentsList.Last)
+	assert.Equal(t, 0, incidentsList.Prev)
+	assert.Equal(t, 0, incidentsList.Next)
+
 	list := incidentsList.Result
 
 	assert.Len(t, list, 2)
@@ -134,9 +143,43 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	list = incidentsList.Result
 	assert.Len(t, list, 0)
 
+	// pagination
+	assert.Equal(t, 0, incidentsList.Size)
+	assert.Equal(t, 2, incidentsList.Total)
+	assert.Equal(t, 2, incidentsList.Page)
+	assert.Equal(t, 1, incidentsList.First)
+	assert.Equal(t, 1, incidentsList.Last)
+	assert.Equal(t, 1, incidentsList.Prev)
+	assert.Equal(t, 0, incidentsList.Next)
+
 	// first page with small number per page
 	incidentsList, err = repo.ListIncidents(ctx, channelID, 1, 1)
 	require.NoError(t, err)
+
+	// pagination
+	assert.Equal(t, 1, incidentsList.Size)
+	assert.Equal(t, 2, incidentsList.Total)
+	assert.Equal(t, 1, incidentsList.Page)
+	assert.Equal(t, 1, incidentsList.First)
+	assert.Equal(t, 2, incidentsList.Last)
+	assert.Equal(t, 0, incidentsList.Prev)
+	assert.Equal(t, 2, incidentsList.Next)
+
+	list = incidentsList.Result
+	assert.Len(t, list, 1)
+
+	// second page with small number per page
+	incidentsList, err = repo.ListIncidents(ctx, channelID, 2, 1)
+	require.NoError(t, err)
+
+	// pagination
+	assert.Equal(t, 1, incidentsList.Size)
+	assert.Equal(t, 2, incidentsList.Total)
+	assert.Equal(t, 2, incidentsList.Page)
+	assert.Equal(t, 1, incidentsList.First)
+	assert.Equal(t, 2, incidentsList.Last)
+	assert.Equal(t, 1, incidentsList.Prev)
+	assert.Equal(t, 0, incidentsList.Next)
 
 	list = incidentsList.Result
 	assert.Len(t, list, 1)

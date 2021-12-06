@@ -84,7 +84,16 @@ func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelI
 func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID, page, perPage uint) (repository.IncidentList, error) {
 	var list []incident.Incident
 
+	// TODO move to repository.Pagination
 	total := uint(len(r.incidents))
+
+	next := page + 1
+	prev := page - 1
+
+	if page == 1 && total < perPage {
+		prev = 0
+	}
+
 	start := (page - 1) * perPage
 	if start >= total {
 		start = total
@@ -93,6 +102,16 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 	end := start + perPage
 	if end > total {
 		end = total
+		next = 0
+	}
+
+	last := total / perPage
+	if next > last {
+		next = 0
+	}
+
+	if last == 0 {
+		last = 1
 	}
 
 	perPageList := r.incidents[start:end]
@@ -108,9 +127,15 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 
 	incidentList := repository.IncidentList{
 		Result: list,
-		Total:  int(total),
-		Size:   int(end - start),
-		Page:   int(page),
+		Pagination: repository.Pagination{
+			Total: int(total),
+			Size:  int(end - start),
+			Page:  int(page),
+			Prev:  int(prev),
+			Next:  int(next),
+			First: 1,
+			Last:  int(last),
+		},
 	}
 	return incidentList, nil
 }

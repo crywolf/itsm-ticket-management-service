@@ -66,18 +66,11 @@ type incidentResponseWrapper struct {
 
 // IncidentListResponse ...
 type IncidentListResponse struct {
-	// Total number of elements in the list
-	// required: true
-	Total int `json:"total"`
-	// Number of elements on the current page
-	// required: true
-	Size int `json:"size"`
-	// Current page number
-	// required: true
-	Page   int                `json:"page"`
+	Pagination
 	Result []IncidentResponse `json:"_embedded,omitempty"`
 	// example: {self:{href:example.com}}
 	Links HypermediaLinks `json:"_links,omitempty"`
+	// TODO change it to new HypermediaListLinks
 }
 
 // A list of incidents

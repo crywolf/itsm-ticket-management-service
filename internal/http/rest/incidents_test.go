@@ -330,6 +330,8 @@ func TestListIncidentsHandler(t *testing.T) {
 			"total":0,
 			"size":0,
 			"page":1,
+			"first":"http://service.url/incidents",
+			"last":"http://service.url/incidents",
 			"_links":{
 				"self":{"href":"http://service.url/incidents"}
 			}
@@ -343,11 +345,15 @@ func TestListIncidentsHandler(t *testing.T) {
 		var emptyList []incident.Incident
 		result := repository.IncidentList{
 			Result: emptyList,
-			Total:  0,
-			Size:   0,
-			Page:   1,
+			Pagination: repository.Pagination{
+				Total: 0,
+				Size:  0,
+				Page:  1,
+				First: 1,
+				Last:  1,
+			},
 		}
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), uint(10)).Return(result, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), PerPage).Return(result, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",
@@ -382,6 +388,8 @@ func TestListIncidentsHandler(t *testing.T) {
 			"total":2,
 			"size":2,
 			"page":1,
+			"first":"http://service.url/incidents",
+			"last":"http://service.url/incidents",
 			"_embedded":
 				[{
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
@@ -460,11 +468,15 @@ func TestListIncidentsHandler(t *testing.T) {
 		incidentSvc := new(mocks.IncidentServiceMock)
 		result := repository.IncidentList{
 			Result: list,
-			Total:  2,
-			Size:   2,
-			Page:   1,
+			Pagination: repository.Pagination{
+				Total: 2,
+				Size:  2,
+				Page:  1,
+				First: 1,
+				Last:  1,
+			},
 		}
-		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), uint(10)).Return(result, nil)
+		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, uint(1), PerPage).Return(result, nil)
 
 		server := NewServer(Config{
 			Addr:                    "service.url",

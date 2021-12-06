@@ -1,6 +1,8 @@
 package hypermedia
 
 import (
+	"net/url"
+
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
@@ -16,6 +18,8 @@ type Mapper interface {
 	RoutesToHypermediaActionLinks() ActionLinks
 	// SelfLink returns 'self' link URL. It is automatically implemented via BaseHypermediaMapper object.
 	SelfLink() string
+	// RequestURL returns current URL
+	RequestURL() *url.URL
 	// ServerAddr returns server URL. It is automatically implemented via BaseHypermediaMapper object.
 	ServerAddr() string
 	// Actor returns user who initiated current API call

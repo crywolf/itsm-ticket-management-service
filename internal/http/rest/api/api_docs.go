@@ -55,6 +55,27 @@ type ActionLink struct {
 	Href string
 }
 
+// Pagination represents information about pagination data
+type Pagination struct {
+	// Total number of elements in the list
+	// required: true
+	Total int `json:"total"`
+	// Size of dataset of elements on the current page
+	// required: true
+	Size int `json:"size"`
+	// Current page number
+	// required: true
+	Page int `json:"page"`
+	// First page link
+	First string `json:"first"`
+	// Last page link
+	Last string `json:"last"`
+	// Previous page link
+	Prev string `json:"prev,omitempty"`
+	// Next page link
+	Next string `json:"next,omitempty"`
+}
+
 // HypermediaLinks contain links to other API calls
 type HypermediaLinks map[string]interface{}
 

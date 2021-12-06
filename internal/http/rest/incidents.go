@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
@@ -104,7 +105,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actorUser)
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL, actorUser)
 		s.presenters.incident.RenderIncident(w, inc, hypermediaMapper)
 	}
 }
@@ -162,7 +163,7 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL.String(), actorUser)
+		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL, actorUser)
 		s.presenters.incident.RenderIncidentList(w, list, listIncidentsRoute, hypermediaMapper)
 	}
 }
@@ -173,7 +174,7 @@ type IncidentHypermediaMapper struct {
 }
 
 // NewIncidentHypermediaMapper returns new hypermedia mapper for incident resource
-func NewIncidentHypermediaMapper(serverAddr, currentURL string, actor actor.Actor) IncidentHypermediaMapper {
+func NewIncidentHypermediaMapper(serverAddr string, currentURL *url.URL, actor actor.Actor) IncidentHypermediaMapper {
 	return IncidentHypermediaMapper{
 		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL, actor),
 	}
