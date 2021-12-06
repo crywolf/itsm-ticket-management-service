@@ -79,6 +79,13 @@ type Pagination struct {
 // HypermediaLinks contain links to other API calls
 type HypermediaLinks map[string]interface{}
 
+// AppendSelfLink adds resource's 'self' link
+func (l *HypermediaLinks) AppendSelfLink(url string) {
+	(*l)["self"] = map[string]string{
+		"href": url,
+	}
+}
+
 // No content
 // swagger:response deleteNoContentResponse
 type deleteNoContentResponseWrapper struct{}

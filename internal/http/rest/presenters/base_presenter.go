@@ -78,7 +78,7 @@ func (p BasePresenter) RenderError(w http.ResponseWriter, msg string, err error)
 	p.renderErrorJSON(w, msg, status)
 }
 
-func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Mapper, domainObject hypermedia.ActionsMapper) api.HypermediaLinks {
+func (p BasePresenter) resourceToHypermediaLinks(domainObject hypermedia.ActionsMapper, hypermediaMapper hypermedia.Mapper, inList bool) api.HypermediaLinks {
 	hypermediaLinks := api.HypermediaLinks{}
 
 	actions := hypermediaMapper.RoutesToHypermediaActionLinks()
@@ -89,6 +89,12 @@ func (p BasePresenter) resourceToHypermediaLinks(hypermediaMapper hypermedia.Map
 		hypermediaLinks[link.Name] = map[string]string{
 			"href": href,
 		}
+	}
+
+	if inList {
+		hypermediaLinks.AppendSelfLink(fmt.Sprintf("%s%s/%s", p.serverAddr, hypermediaMapper.RequestURL().Path, domainObject.UUID()))
+	} else {
+		hypermediaLinks.AppendSelfLink(hypermediaMapper.SelfLink())
 	}
 
 	return hypermediaLinks

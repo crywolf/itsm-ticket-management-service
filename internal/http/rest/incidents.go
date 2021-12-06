@@ -163,6 +163,7 @@ func NewIncidentHypermediaMapper(serverAddr string, currentURL *url.URL, actor a
 func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.ActionLinks {
 	acts := hypermedia.ActionLinks{}
 
+	// TODO implement as a method on BaseHypermediaMapper
 	acts[incident.ActionCancel.String()] = api.ActionLink{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
 	acts[incident.ActionStartWorking.String()] = api.ActionLink{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}
 

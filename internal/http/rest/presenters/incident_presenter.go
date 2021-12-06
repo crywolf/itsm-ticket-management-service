@@ -23,17 +23,10 @@ type incidentPresenter struct {
 	*BasePresenter
 }
 
-func (p incidentPresenter) RenderIncident(w http.ResponseWriter, incident incident.Incident, hypermediaMapper hypermedia.Mapper) {
-	apiInc := p.convertIncidentToAPI(incident)
-
-	incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, incident)
-	incHypermedia["self"] = map[string]string{
-		"href": hypermediaMapper.SelfLink(),
-	}
-
+func (p incidentPresenter) RenderIncident(w http.ResponseWriter, inc incident.Incident, hypermediaMapper hypermedia.Mapper) {
 	incResp := api.IncidentResponse{
-		Incident: apiInc,
-		Links:    incHypermedia,
+		Incident: p.convertIncidentToAPI(inc),
+		Links:    p.resourceToHypermediaLinks(inc, hypermediaMapper, false),
 	}
 
 	p.renderJSON(w, incResp)
@@ -43,25 +36,15 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList.Result {
-		apiInc := p.convertIncidentToAPI(inc)
-
-		incHypermedia := p.resourceToHypermediaLinks(hypermediaMapper, inc)
-		incHypermedia["self"] = map[string]string{
-			"href": fmt.Sprintf("%s%s/%s", p.serverAddr, hypermediaMapper.RequestURL().Path, inc.UUID()),
-		}
-
 		incResp := api.IncidentResponse{
-			Incident: apiInc,
-			Links:    incHypermedia,
+			Incident: p.convertIncidentToAPI(inc),
+			Links:    p.resourceToHypermediaLinks(inc, hypermediaMapper, true),
 		}
 		apiList = append(apiList, incResp)
 	}
 
-	listLinks := api.HypermediaLinks{
-		"self": map[string]string{
-			"href": hypermediaMapper.SelfLink(),
-		},
-	}
+	listLinks := api.HypermediaLinks{}
+	listLinks.AppendSelfLink(hypermediaMapper.SelfLink())
 
 	// TODO move to hypermedia object
 	query := hypermediaMapper.RequestURL().Query()
