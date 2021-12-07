@@ -7,7 +7,6 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/julienschmidt/httprouter"
@@ -161,13 +160,12 @@ func NewIncidentHypermediaMapper(serverAddr string, currentURL *url.URL, actor a
 
 // RoutesToHypermediaActionLinks maps domain object actions to hypermedia action links
 func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.ActionLinks {
-	acts := hypermedia.ActionLinks{}
+	links := hypermedia.NewActionLinks(h.BaseHypermediaMapper)
 
-	// TODO implement as a method on BaseHypermediaMapper
-	acts[incident.ActionCancel.String()] = api.Link{Name: "CancelIncident", Href: h.ServerAddr() + cancelIncidentRoute}
-	acts[incident.ActionStartWorking.String()] = api.Link{Name: "IncidentStartWorking", Href: h.ServerAddr() + incidentStartWorkingRoute}
+	links.Add(incident.ActionCancel.String(), "CancelIncident", cancelIncidentRoute)
+	links.Add(incident.ActionStartWorking.String(), "IncidentStartWorking", incidentStartWorkingRoute)
 
-	return acts
+	return links
 }
 
 // TODO implement routes - they are just for testing at the moment

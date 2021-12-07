@@ -83,10 +83,10 @@ func (p BasePresenter) RenderError(w http.ResponseWriter, msg string, err error)
 func (p BasePresenter) resourceToHypermediaLinks(domainObject hypermedia.ActionsMapper, hypermediaMapper hypermedia.Mapper, inList bool) api.HypermediaLinks {
 	hypermediaLinks := api.HypermediaLinks{}
 
-	actions := hypermediaMapper.RoutesToHypermediaActionLinks()
+	actionLinks := hypermediaMapper.RoutesToHypermediaActionLinks()
 	allowedActions := domainObject.AllowedActions(hypermediaMapper.Actor())
 	for _, action := range allowedActions {
-		link := actions[action]
+		link := actionLinks.Get(action)
 		href := strings.ReplaceAll(link.Href, "{uuid}", domainObject.UUID().String())
 		hypermediaLinks[link.Name] = map[string]string{
 			"href": href,
