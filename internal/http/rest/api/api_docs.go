@@ -49,8 +49,8 @@ type AuthorizationHeaders struct {
 	ChannelID UUID `json:"channel-id"`
 }
 
-// Link represents HAL hypermedia links
-type Link struct {
+// ActionLink represents action link to be transformed to HAL hypermedia links
+type ActionLink struct {
 	Name string
 	Href string
 }
@@ -66,14 +66,6 @@ type Pagination struct {
 	// Current page number
 	// required: true
 	Page int `json:"page"`
-	//// First page link
-	//First string `json:"first"`
-	//// Last page link
-	//Last string `json:"last"`
-	//// Previous page link
-	//Prev string `json:"prev,omitempty"`
-	//// Next page link
-	//Next string `json:"next,omitempty"`
 }
 
 // HypermediaLinks contain links to other API calls
@@ -86,14 +78,32 @@ func (l *HypermediaLinks) AppendSelfLink(url string) {
 	}
 }
 
+// Link represents HAL hypermedia links
+type Link struct {
+	// swagger:strfmt uri
+	Href string `json:"href"`
+}
+
 // HypermediaListLinks contain 'self' and pagination links
-type HypermediaListLinks map[string]interface{}
+type HypermediaListLinks struct {
+	// Self link
+	// required: true
+	Self Link `json:"self"`
+	// First page link
+	// required: true
+	First Link `json:"first"`
+	// Last page link
+	// required: true
+	Last Link `json:"last"`
+	// Previous page link
+	Prev *Link `json:"prev,omitempty"`
+	// Next page link
+	Next *Link `json:"next,omitempty"`
+}
 
 // AppendSelfLink adds resource's 'self' link
 func (l *HypermediaListLinks) AppendSelfLink(url string) {
-	(*l)["self"] = map[string]string{
-		"href": url,
-	}
+	l.Self = Link{Href: url}
 }
 
 // No content

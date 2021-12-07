@@ -10,6 +10,7 @@ import (
 type PaginationParams interface {
 	// Page returns requested page number to be returned
 	Page() uint
+
 	// ItemsPerPage returns how many items per page should be displayed
 	ItemsPerPage() uint
 }

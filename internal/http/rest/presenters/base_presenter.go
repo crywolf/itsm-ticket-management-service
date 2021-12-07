@@ -94,7 +94,7 @@ func (p BasePresenter) resourceToHypermediaLinks(domainObject hypermedia.Actions
 	}
 
 	if inList {
-		hypermediaLinks.AppendSelfLink(fmt.Sprintf("%s%s/%s", p.serverAddr, hypermediaMapper.RequestURL().Path, domainObject.UUID()))
+		hypermediaLinks.AppendSelfLink(fmt.Sprintf("%s%s/%s", hypermediaMapper.ServerAddr(), hypermediaMapper.RequestURL().Path, domainObject.UUID()))
 	} else {
 		hypermediaLinks.AppendSelfLink(hypermediaMapper.SelfLink())
 	}
@@ -130,35 +130,35 @@ func (p BasePresenter) hypermediaListLinks(hypermediaMapper hypermedia.Mapper, p
 	if pagination.Prev == 1 {
 		query.Del("page")
 		prev.RawQuery = query.Encode()
-		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
+		prevString = fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), prev.String())
 	} else if pagination.Prev > 1 {
 		query.Set("page", strconv.Itoa(pagination.Prev))
 		prev.RawQuery = query.Encode()
-		prevString = fmt.Sprintf("%s%s", p.serverAddr, prev.String())
+		prevString = fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), prev.String())
 	}
 
 	nextString := ""
 	if pagination.Next > 0 {
 		query.Set("page", strconv.Itoa(pagination.Next))
 		next.RawQuery = query.Encode()
-		nextString = fmt.Sprintf("%s%s", p.serverAddr, next.String())
+		nextString = fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), next.String())
 	}
 
-	hypermediaLinks["first"] = map[string]string{
-		"href": fmt.Sprintf("%s%s", p.serverAddr, first.String()),
+	hypermediaLinks.First = api.Link{
+		Href: fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), first.String()),
 	}
-	hypermediaLinks["last"] = map[string]string{
-		"href": fmt.Sprintf("%s%s", p.serverAddr, last.String()),
+	hypermediaLinks.Last = api.Link{
+		Href: fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), last.String()),
 	}
 
 	if prevString != "" {
-		hypermediaLinks["prev"] = map[string]string{
-			"href": prevString,
+		hypermediaLinks.Prev = &api.Link{
+			Href: prevString,
 		}
 	}
 	if nextString != "" {
-		hypermediaLinks["next"] = map[string]string{
-			"href": nextString,
+		hypermediaLinks.Next = &api.Link{
+			Href: nextString,
 		}
 	}
 

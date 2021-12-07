@@ -78,9 +78,22 @@ definitions:
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   HypermediaListLinks:
-    additionalProperties:
-      type: object
     description: HypermediaListLinks contain 'self' and pagination links
+    properties:
+      first:
+        $ref: '#/definitions/Link'
+      last:
+        $ref: '#/definitions/Link'
+      next:
+        $ref: '#/definitions/Link'
+      prev:
+        $ref: '#/definitions/Link'
+      self:
+        $ref: '#/definitions/Link'
+    required:
+    - self
+    - first
+    - last
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   Incident:
@@ -211,6 +224,15 @@ definitions:
     - short_description
     - state
     title: IncidentResponse ...
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  Link:
+    description: Link represents HAL hypermedia links
+    properties:
+      href:
+        format: uri
+        type: string
+        x-go-name: Href
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   State:
