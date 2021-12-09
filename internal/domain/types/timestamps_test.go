@@ -12,7 +12,7 @@ func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID ref.ExternalUserUUID
+		userID ref.UUID
 	}
 	tests := []struct {
 		name    string
@@ -62,7 +62,7 @@ func TestCreatedUpdated_SetCreated(t *testing.T) {
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID   ref.ExternalUserUUID
+		userID   ref.UUID
 		dateTime DateTime
 	}
 	tests := []struct {
@@ -113,7 +113,7 @@ func TestCreatedUpdated_SetUpdatedBy(t *testing.T) {
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID ref.ExternalUserUUID
+		userID ref.UUID
 	}
 	tests := []struct {
 		name    string
@@ -155,7 +155,7 @@ func TestCreatedUpdated_SetUpdated(t *testing.T) {
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID   ref.ExternalUserUUID
+		userID   ref.UUID
 		dateTime DateTime
 	}
 	tests := []struct {

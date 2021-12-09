@@ -68,6 +68,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 //  401: errorResponse401
 //  403: errorResponse403
 //	404: errorResponse404
+const getIncidentRoute = "/incidents/{uuid}"
 
 // GetIncident returns handler for getting single incident
 func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -167,6 +168,9 @@ func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.Act
 
 	return links
 }
+
+// TODO this route will be in
+const getBasicUserRoute = "/basic_user/{uuid}"
 
 // TODO implement routes - they are just for testing at the moment
 const cancelIncidentRoute = "/incidents/{uuid}/cancel"

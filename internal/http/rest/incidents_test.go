@@ -297,6 +297,19 @@ func TestGetIncidentHandler(t *testing.T) {
 			"created_at":"2021-04-01T12:34:56+02:00",
 			"updated_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
 			"updated_at":"2021-04-01T12:34:56+02:00",
+			"_embedded":{
+				"created_by":{
+					"_links": {
+						"self": {"href": "http://service.url/basic_users/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"}
+					},
+				    "external_user_uuid": "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+					"name":"Alfred",
+					"surname":"Kolecko",
+					"org_name":"a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+					"org_display_name":"KompiTech",
+				    "uuid": "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
+				}
+			},
 			"_links":{
 				"self":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"},
 				"CancelIncident":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/cancel"},

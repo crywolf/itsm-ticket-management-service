@@ -2,6 +2,57 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  BasicUser:
+    description: BasicUser API object
+    properties:
+      created_at:
+        description: Time when the resource was created
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      created_by:
+        description: Reference to the user who created this resource
+        format: uuid
+        type: string
+        x-go-name: CreatedBy
+      external_user_uuid:
+        $ref: '#/definitions/ExternalUserUUID'
+      name:
+        type: string
+        x-go-name: Name
+      org_display_name:
+        example: KompiTech
+        type: string
+        x-go-name: OrgDisplayName
+      org_name:
+        example: a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com
+        type: string
+        x-go-name: OrgName
+      surname:
+        type: string
+        x-go-name: Surname
+      updated_at:
+        description: Time when the resource was updated
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+      updated_by:
+        description: Reference to the user who updated this resource
+        format: uuid
+        type: string
+        x-go-name: UpdatedBy
+      uuid:
+        format: uuid
+        type: string
+        x-go-name: UUID
+    required:
+    - created_at
+    - created_by
+    - uuid
+    - name
+    - surname
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   CreateIncidentParams:
     description: CreateIncidentParams is the payload used to create new incident
     properties:
@@ -71,6 +122,15 @@ definitions:
     - created_by
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  EmbeddedResources:
+    additionalProperties:
+      type: object
+    description: EmbeddedResources contain information about embedded objects
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  ExternalUserUUID:
+    $ref: '#/definitions/UUID'
+    description: ExternalUserUUID represents UUID of a user (in external service)
   HypermediaLinks:
     additionalProperties:
       type: object
@@ -78,7 +138,8 @@ definitions:
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   HypermediaListLinks:
-    description: HypermediaListLinks contain 'self' and pagination links
+    description: HypermediaListLinks contain 'self' and pagination links to be use
+      in list views
     properties:
       first:
         $ref: '#/definitions/Link'
@@ -162,6 +223,8 @@ definitions:
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   IncidentResponse:
     properties:
+      _embedded:
+        $ref: '#/definitions/EmbeddedResources'
       _links:
         $ref: '#/definitions/HypermediaLinks'
       created_at:
@@ -227,7 +290,7 @@ definitions:
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   Link:
-    description: Link represents HAL hypermedia links
+    description: Link represents HAL hypermedia link
     properties:
       href:
         format: uri
@@ -285,6 +348,10 @@ definitions:
     - remote
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  UUID:
+    description: UUID represents UUID of a resource
+    type: string
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref
   UpdatedInfo:
     description: UpdatedInfo contains timestamp and user who updated the resource
     properties:
@@ -511,6 +578,8 @@ responses:
     description: Data structure representing a single incident
     schema:
       properties:
+        _embedded:
+          $ref: '#/definitions/EmbeddedResources'
         _links:
           $ref: '#/definitions/HypermediaLinks'
         created_at:

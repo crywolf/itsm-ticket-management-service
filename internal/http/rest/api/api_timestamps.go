@@ -11,21 +11,21 @@ type CreatedInfo struct {
 	// Time when the resource was created
 	// required: true
 	// swagger:strfmt date-time
-	CreatedAt string `json:"created_at"`
+	CreatedAt string `json:"created_at,omitempty"`
 
 	// Reference to the user who created this resource
 	// required: true
 	// swagger:strfmt uuid
-	CreatedBy string `json:"created_by"`
+	CreatedBy string `json:"created_by,omitempty"`
 }
 
 // UpdatedInfo contains timestamp and user who updated the resource
 type UpdatedInfo struct {
 	// Time when the resource was updated
 	// swagger:strfmt date-time
-	UpdatedAt string `json:"updated_at"`
+	UpdatedAt string `json:"updated_at,omitempty"`
 
 	// Reference to the user who updated this resource
 	// swagger:strfmt uuid
-	UpdatedBy string `json:"updated_by"`
+	UpdatedBy string `json:"updated_by,omitempty"`
 }

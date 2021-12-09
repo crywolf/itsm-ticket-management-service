@@ -3,10 +3,12 @@ package incident
 import (
 	"errors"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // Incident domain object
@@ -84,4 +86,16 @@ func (e *Incident) SetOpenTimelog(openTimelog *timelog.Timelog) {
 // HasOpenTimelog returns true if the ticket has open timelog
 func (e Incident) HasOpenTimelog() bool {
 	return e.openTimelog != nil
+}
+
+// EmbeddedResources returns list of other objects that are 'embedded' in the ticket
+func (e Incident) EmbeddedResources(actor actor.Actor) []embedded.Resource {
+	var resources []embedded.Resource
+
+	resources = append(resources, e.CreatedUpdated.EmbeddedResources(actor)...)
+
+	// TODO add other fields...
+	if actor.IsFieldEngineer() {
+	}
+	return resources
 }

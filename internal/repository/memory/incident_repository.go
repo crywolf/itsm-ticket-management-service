@@ -49,7 +49,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 		Description:      inc.Description,
 		State:            incident.StateNew.String(),
 		Timelogs:         timelogUUIDs,
-		CreatedBy:        inc.CreatedUpdated.CreatedBy().String(),
+		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        now,
 		UpdatedBy:        inc.CreatedUpdated.UpdatedBy().String(),
 		UpdatedAt:        now,
@@ -140,12 +140,12 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incide
 				VisitSummary: storedTmlg.VisitSummary,
 			}
 
-			err = openTmlg.CreatedUpdated.SetCreated(ref.ExternalUserUUID(storedTmlg.CreatedBy), types.DateTime(storedTmlg.CreatedAt))
+			err = openTmlg.CreatedUpdated.SetCreated(ref.UUID(storedTmlg.CreatedBy), types.DateTime(storedTmlg.CreatedAt))
 			if err != nil {
 				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 			}
 
-			err = openTmlg.CreatedUpdated.SetUpdated(ref.ExternalUserUUID(storedTmlg.UpdatedBy), types.DateTime(storedTmlg.UpdatedAt))
+			err = openTmlg.CreatedUpdated.SetUpdated(ref.UUID(storedTmlg.UpdatedBy), types.DateTime(storedTmlg.UpdatedAt))
 			if err != nil {
 				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 			}
@@ -165,12 +165,12 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incide
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
-	err = inc.CreatedUpdated.SetCreated(ref.ExternalUserUUID(storedInc.CreatedBy), types.DateTime(storedInc.CreatedAt))
+	err = inc.CreatedUpdated.SetCreated(ref.UUID(storedInc.CreatedBy), types.DateTime(storedInc.CreatedAt))
 	if err != nil {
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
-	err = inc.CreatedUpdated.SetUpdated(ref.ExternalUserUUID(storedInc.UpdatedBy), types.DateTime(storedInc.UpdatedAt))
+	err = inc.CreatedUpdated.SetUpdated(ref.UUID(storedInc.UpdatedBy), types.DateTime(storedInc.UpdatedAt))
 	if err != nil {
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}

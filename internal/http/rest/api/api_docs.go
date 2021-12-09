@@ -78,13 +78,13 @@ func (l *HypermediaLinks) AppendSelfLink(url string) {
 	}
 }
 
-// Link represents HAL hypermedia links
+// Link represents HAL hypermedia link
 type Link struct {
 	// swagger:strfmt uri
 	Href string `json:"href"`
 }
 
-// HypermediaListLinks contain 'self' and pagination links
+// HypermediaListLinks contain 'self' and pagination links to be use in list views
 type HypermediaListLinks struct {
 	// Self link
 	// required: true

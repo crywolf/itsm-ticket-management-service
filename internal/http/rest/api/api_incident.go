@@ -52,7 +52,8 @@ type CreateIncidentParams struct {
 // IncidentResponse ...
 type IncidentResponse struct {
 	Incident
-	Links HypermediaLinks `json:"_links,omitempty"`
+	Links    HypermediaLinks   `json:"_links,omitempty"`
+	Embedded EmbeddedResources `json:"_embedded,omitempty"`
 }
 
 // Data structure representing a single incident

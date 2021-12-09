@@ -102,6 +102,22 @@ func (p BasePresenter) resourceToHypermediaLinks(domainObject hypermedia.Actions
 	return hypermediaLinks
 }
 
+func (p BasePresenter) resourceToEmbeddedField(domainObject hypermedia.EmbeddedResourceMapper, mappings []hypermedia.EmbeddedResourceMapping, hypermediaMapper hypermedia.Mapper) api.EmbeddedResources {
+	hypermediaResource := api.EmbeddedResources{}
+
+	allowedResources := domainObject.EmbeddedResources(hypermediaMapper.Actor())
+	for _, resourceName := range allowedResources {
+		for _, mapping := range mappings {
+			if mapping.ResourceName == resourceName {
+				mapping.Resource.AppendSelfLink(fmt.Sprintf("%s%s", hypermediaMapper.ServerAddr(), mapping.Route))
+				hypermediaResource[mapping.Key] = mapping.Resource
+			}
+		}
+	}
+
+	return hypermediaResource
+}
+
 func (p BasePresenter) hypermediaListLinks(hypermediaMapper hypermedia.Mapper, pagination *repository.Pagination) api.HypermediaListLinks {
 	hypermediaLinks := api.HypermediaListLinks{}
 

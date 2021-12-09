@@ -3,6 +3,7 @@ package hypermedia
 import (
 	"net/url"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
@@ -27,11 +28,27 @@ type Mapper interface {
 }
 
 // ActionsMapper provides domain object mapping to hypermedia actions.
-// It must be implemented by domain object.
+// It must be implemented by the domain object.
 type ActionsMapper interface {
-	// UUID return identifier of the domain object
+	// UUID returns identifier of the domain object
 	UUID() ref.UUID
 
 	// AllowedActions returns list of actions that can be performed with the domain object according to its state and other conditions
 	AllowedActions(actor actor.Actor) []string
+}
+
+// EmbeddedResourceMapper provides information about domain object mapping to hypermedia embedded resources.
+// It must be implemented by the domain object.
+type EmbeddedResourceMapper interface {
+	// EmbeddedResources returns list of other resources that are 'embedded' in the resource
+	EmbeddedResources(actor actor.Actor) []embedded.Resource
+}
+
+// EmbeddedResource can append 'self' link to its '_links' object
+type EmbeddedResource interface {
+	// UUID returns resource's UUID
+	UUID() string
+
+	// AppendSelfLink adds resource's 'self' link to its '_links' object
+	AppendSelfLink(url string)
 }

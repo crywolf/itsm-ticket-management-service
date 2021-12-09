@@ -18,7 +18,7 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	}
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
-	actorID := ref.ExternalUserUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+	actorID := ref.UUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
 	ctx := context.Background()
 
 	inc1 := incident.Incident{
@@ -45,8 +45,8 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	assert.Equal(t, inc1.Description, retInc.Description)
 
 	// test correct timestamps
-	assert.NotEmpty(t, inc1.CreatedUpdated.CreatedBy())
-	assert.Equal(t, inc1.CreatedUpdated.CreatedBy(), retInc.CreatedUpdated.CreatedBy())
+	assert.NotEmpty(t, inc1.CreatedUpdated.CreatedByID())
+	assert.Equal(t, inc1.CreatedUpdated.CreatedByID(), retInc.CreatedUpdated.CreatedByID())
 	assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.CreatedAt())
 
 	assert.NotEmpty(t, inc1.CreatedUpdated.UpdatedBy())
@@ -61,8 +61,8 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	}
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
-	actorID := ref.ExternalUserUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
-	actor2ID := ref.ExternalUserUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
+	actorID := ref.UUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+	actor2ID := ref.UUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
 
 	ctx := context.Background()
 
@@ -127,8 +127,8 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		assert.Equal(t, inc.Description, retInc.Description)
 
 		// test correct timestamps
-		assert.NotEmpty(t, inc.CreatedUpdated.CreatedBy())
-		assert.Equal(t, inc.CreatedUpdated.CreatedBy(), retInc.CreatedUpdated.CreatedBy())
+		assert.NotEmpty(t, inc.CreatedUpdated.CreatedByID())
+		assert.Equal(t, inc.CreatedUpdated.CreatedByID(), retInc.CreatedUpdated.CreatedByID())
 		assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.CreatedAt())
 
 		assert.NotEmpty(t, inc.CreatedUpdated.UpdatedBy())
