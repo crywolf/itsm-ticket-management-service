@@ -3,16 +3,25 @@ package types
 import (
 	"testing"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 )
 
 func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
+	var basicUser = user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+
 	type fields struct {
 		createdInfo createdInfo
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID ref.UUID
+		basicUser user.BasicUser
 	}
 	tests := []struct {
 		name    string
@@ -23,15 +32,15 @@ func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
 		{
 			name:    "createdBy not set",
 			fields:  fields{},
-			args:    args{userID: "seme user UUID"},
+			args:    args{basicUser: basicUser},
 			wantErr: false,
 		},
 		{
 			name: "createdBy was already set => returns error",
 			fields: fields{createdInfo: createdInfo{
-				createdBy: "5a4b6317-f99c-4c21-aa82-9ca5671d7f18",
+				createdBy: basicUser,
 			}},
-			args:    args{userID: "seme user UUID"},
+			args:    args{basicUser: basicUser},
 			wantErr: true,
 		},
 		{
@@ -39,7 +48,7 @@ func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
 			fields: fields{createdInfo: createdInfo{
 				createdAt: "some time string",
 			}},
-			args:    args{userID: "seme user UUID"},
+			args:    args{basicUser: basicUser},
 			wantErr: false,
 		},
 	}
@@ -49,7 +58,7 @@ func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
 				createdInfo: tt.fields.createdInfo,
 				updatedInfo: tt.fields.updatedInfo,
 			}
-			if err := o.SetCreatedBy(tt.args.userID); (err != nil) != tt.wantErr {
+			if err := o.SetCreatedBy(tt.args.basicUser); (err != nil) != tt.wantErr {
 				t.Errorf("SetCreatedBy() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -57,13 +66,22 @@ func TestCreatedUpdated_SetCreatedBy(t *testing.T) {
 }
 
 func TestCreatedUpdated_SetCreated(t *testing.T) {
+	var basicUser = user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+
 	type fields struct {
 		createdInfo createdInfo
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID   ref.UUID
-		dateTime DateTime
+		basicUser user.BasicUser
+		dateTime  DateTime
 	}
 	tests := []struct {
 		name    string
@@ -74,7 +92,7 @@ func TestCreatedUpdated_SetCreated(t *testing.T) {
 		{
 			name:    "both createdBy and createdAt not set",
 			fields:  fields{},
-			args:    args{userID: "864e20a3-51ae-49fa-ae74-27768f8d2d48", dateTime: "actual time"},
+			args:    args{basicUser: basicUser, dateTime: "actual time"},
 			wantErr: false,
 		},
 		{
@@ -88,9 +106,9 @@ func TestCreatedUpdated_SetCreated(t *testing.T) {
 		{
 			name: "createdBy was already set => returns error",
 			fields: fields{createdInfo: createdInfo{
-				createdBy: "5a4b6317-f99c-4c21-aa82-9ca5671d7f18",
+				createdBy: basicUser,
 			}},
-			args:    args{userID: "864e20a3-51ae-49fa-ae74-27768f8d2d48", dateTime: "actual time"},
+			args:    args{basicUser: basicUser, dateTime: "actual time"},
 			wantErr: true,
 		},
 	}
@@ -100,7 +118,7 @@ func TestCreatedUpdated_SetCreated(t *testing.T) {
 				createdInfo: tt.fields.createdInfo,
 				updatedInfo: tt.fields.updatedInfo,
 			}
-			if err := o.SetCreated(tt.args.userID, tt.args.dateTime); (err != nil) != tt.wantErr {
+			if err := o.SetCreated(tt.args.basicUser, tt.args.dateTime); (err != nil) != tt.wantErr {
 				t.Errorf("SetCreatedAt error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -108,12 +126,21 @@ func TestCreatedUpdated_SetCreated(t *testing.T) {
 }
 
 func TestCreatedUpdated_SetUpdatedBy(t *testing.T) {
+	var basicUser = user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+
 	type fields struct {
 		createdInfo createdInfo
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID ref.UUID
+		basicUser user.BasicUser
 	}
 	tests := []struct {
 		name    string
@@ -124,15 +151,15 @@ func TestCreatedUpdated_SetUpdatedBy(t *testing.T) {
 		{
 			name:    "updatedBy not set",
 			fields:  fields{},
-			args:    args{userID: "seme user UUID"},
+			args:    args{basicUser: basicUser},
 			wantErr: false,
 		},
 		{
 			name: "updatedBy was already set",
 			fields: fields{updatedInfo: updatedInfo{
-				updatedBy: "5a4b6317-f99c-4c21-aa82-9ca5671d7f18",
+				updatedBy: basicUser,
 			}},
-			args:    args{userID: "seme user UUID"},
+			args:    args{basicUser: basicUser},
 			wantErr: false,
 		},
 	}
@@ -142,7 +169,7 @@ func TestCreatedUpdated_SetUpdatedBy(t *testing.T) {
 				createdInfo: tt.fields.createdInfo,
 				updatedInfo: tt.fields.updatedInfo,
 			}
-			if err := o.SetUpdatedBy(tt.args.userID); (err != nil) != tt.wantErr {
+			if err := o.SetUpdatedBy(tt.args.basicUser); (err != nil) != tt.wantErr {
 				t.Errorf("SetUpdatedBy() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -150,13 +177,22 @@ func TestCreatedUpdated_SetUpdatedBy(t *testing.T) {
 }
 
 func TestCreatedUpdated_SetUpdated(t *testing.T) {
+	var basicUser = user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+
 	type fields struct {
 		createdInfo createdInfo
 		updatedInfo updatedInfo
 	}
 	type args struct {
-		userID   ref.UUID
-		dateTime DateTime
+		basicUser user.BasicUser
+		dateTime  DateTime
 	}
 	tests := []struct {
 		name    string
@@ -167,15 +203,15 @@ func TestCreatedUpdated_SetUpdated(t *testing.T) {
 		{
 			name:    "both updatedBy and updatedAt not set",
 			fields:  fields{},
-			args:    args{userID: "864e20a3-51ae-49fa-ae74-27768f8d2d48", dateTime: "actual time"},
+			args:    args{basicUser: basicUser, dateTime: "actual time"},
 			wantErr: false,
 		},
 		{
 			name: "updatedBy was already set",
 			fields: fields{updatedInfo: updatedInfo{
-				updatedBy: "5a4b6317-f99c-4c21-aa82-9ca5671d7f18",
+				updatedBy: basicUser,
 			}},
-			args:    args{userID: "864e20a3-51ae-49fa-ae74-27768f8d2d48", dateTime: "actual time"},
+			args:    args{basicUser: basicUser, dateTime: "actual time"},
 			wantErr: false,
 		},
 		{
@@ -189,9 +225,9 @@ func TestCreatedUpdated_SetUpdated(t *testing.T) {
 		{
 			name: "createdBy was already set",
 			fields: fields{createdInfo: createdInfo{
-				createdBy: "5a4b6317-f99c-4c21-aa82-9ca5671d7f18",
+				createdBy: basicUser,
 			}},
-			args:    args{userID: "864e20a3-51ae-49fa-ae74-27768f8d2d48", dateTime: "actual time"},
+			args:    args{basicUser: basicUser, dateTime: "actual time"},
 			wantErr: false,
 		},
 	}
@@ -201,7 +237,7 @@ func TestCreatedUpdated_SetUpdated(t *testing.T) {
 				createdInfo: tt.fields.createdInfo,
 				updatedInfo: tt.fields.updatedInfo,
 			}
-			if err := o.SetUpdated(tt.args.userID, tt.args.dateTime); (err != nil) != tt.wantErr {
+			if err := o.SetUpdated(tt.args.basicUser, tt.args.dateTime); (err != nil) != tt.wantErr {
 				t.Errorf("SetUpdatedBy() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -21,10 +21,11 @@ type Clock interface {
 
 // IncidentRepositoryMemory keeps data in memory
 type IncidentRepositoryMemory struct {
-	Rand      io.Reader
-	Clock     Clock
-	incidents []Incident
-	timelogs  map[string]Timelog
+	basicUserRepository BasicUserRepositoryMemory
+	Rand                io.Reader
+	Clock               Clock
+	incidents           []Incident
+	timelogs            map[string]Timelog
 }
 
 // AddIncident adds the given incident to the repository
@@ -51,7 +52,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 		Timelogs:         timelogUUIDs,
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        now,
-		UpdatedBy:        inc.CreatedUpdated.UpdatedBy().String(),
+		UpdatedBy:        inc.CreatedUpdated.UpdatedByID().String(),
 		UpdatedAt:        now,
 	}
 	r.incidents = append(r.incidents, storedInc)
@@ -60,7 +61,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 }
 
 // GetIncident returns the incident with given ID from the repository
-func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
+func (r *IncidentRepositoryMemory) GetIncident(ctx context.Context, channelID ref.ChannelID, ID ref.UUID) (incident.Incident, error) {
 	var inc incident.Incident
 	var err error
 
@@ -68,7 +69,7 @@ func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelI
 		if r.incidents[i].ID == ID.String() {
 			storedInc := r.incidents[i]
 
-			inc, err = r.convertStoredToDomainIncident(storedInc)
+			inc, err = r.convertStoredToDomainIncident(ctx, channelID, storedInc)
 			if err != nil {
 				return incident.Incident{}, err
 			}
@@ -81,7 +82,7 @@ func (r *IncidentRepositoryMemory) GetIncident(_ context.Context, _ ref.ChannelI
 }
 
 // ListIncidents returns the list of incidents from the repository
-func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.ChannelID, page, itemsPerPage uint) (repository.IncidentList, error) {
+func (r *IncidentRepositoryMemory) ListIncidents(ctx context.Context, channelID ref.ChannelID, page, itemsPerPage uint) (repository.IncidentList, error) {
 	var list []incident.Incident
 
 	total := len(r.incidents)
@@ -94,7 +95,7 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 	perPageList := r.incidents[firstElementIndex : lastElementIndex+1]
 
 	for _, storedInc := range perPageList {
-		inc, err := r.convertStoredToDomainIncident(storedInc)
+		inc, err := r.convertStoredToDomainIncident(ctx, channelID, storedInc)
 		if err != nil {
 			return repository.IncidentList{}, err
 		}
@@ -109,7 +110,7 @@ func (r *IncidentRepositoryMemory) ListIncidents(_ context.Context, _ ref.Channe
 	return incidentList, nil
 }
 
-func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incident) (incident.Incident, error) {
+func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Context, channelID ref.ChannelID, storedInc Incident) (incident.Incident, error) {
 	var inc incident.Incident
 	errMsg := "error loading incident from the repository"
 
@@ -140,12 +141,22 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incide
 				VisitSummary: storedTmlg.VisitSummary,
 			}
 
-			err = openTmlg.CreatedUpdated.SetCreated(ref.UUID(storedTmlg.CreatedBy), types.DateTime(storedTmlg.CreatedAt))
+			createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTmlg.CreatedBy))
 			if err != nil {
 				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 			}
 
-			err = openTmlg.CreatedUpdated.SetUpdated(ref.UUID(storedTmlg.UpdatedBy), types.DateTime(storedTmlg.UpdatedAt))
+			err = openTmlg.CreatedUpdated.SetCreated(createdByUser, types.DateTime(storedTmlg.CreatedAt))
+			if err != nil {
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+			}
+
+			updatedByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTmlg.UpdatedBy))
+			if err != nil {
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+			}
+
+			err = openTmlg.CreatedUpdated.SetUpdated(updatedByUser, types.DateTime(storedTmlg.UpdatedAt))
 			if err != nil {
 				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 			}
@@ -165,12 +176,22 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(storedInc Incide
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
-	err = inc.CreatedUpdated.SetCreated(ref.UUID(storedInc.CreatedBy), types.DateTime(storedInc.CreatedAt))
+	createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedInc.CreatedBy))
 	if err != nil {
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}
 
-	err = inc.CreatedUpdated.SetUpdated(ref.UUID(storedInc.UpdatedBy), types.DateTime(storedInc.UpdatedAt))
+	err = inc.CreatedUpdated.SetCreated(createdByUser, types.DateTime(storedInc.CreatedAt))
+	if err != nil {
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+	}
+
+	updatedByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedInc.UpdatedBy))
+	if err != nil {
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+	}
+
+	err = inc.CreatedUpdated.SetUpdated(updatedByUser, types.DateTime(storedInc.UpdatedAt))
 	if err != nil {
 		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
 	}

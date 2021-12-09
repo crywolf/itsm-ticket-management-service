@@ -30,9 +30,10 @@ func TestCreateIncidentHandler(t *testing.T) {
 
 	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
-			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			ExternalUserUUID: "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 		},
 	}
+	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
 
 	t.Parallel()
 
@@ -156,9 +157,14 @@ func TestGetIncidentHandler(t *testing.T) {
 
 	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
-			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+			Name:             "Alfred",
+			Surname:          "Koletschko",
+			OrgDisplayName:   "KompiTech",
+			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 		},
 	}
+	_ = actorUser.BasicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
 	fieldEngineer := &fieldengineer.FieldEngineer{}
 	_ = fieldEngineer.SetUUID("123456789")
 	actorUser.SetFieldEngineer(fieldEngineer)
@@ -249,9 +255,9 @@ func TestGetIncidentHandler(t *testing.T) {
 		require.NoError(t, err)
 		err = retInc.SetState(state)
 		require.NoError(t, err)
-		err = retInc.CreatedUpdated.SetCreated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
+		err = retInc.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
-		err = retInc.CreatedUpdated.SetUpdated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
+		err = retInc.CreatedUpdated.SetUpdated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 
 		us := new(mocks.ExternalUserServiceMock)
@@ -293,9 +299,9 @@ func TestGetIncidentHandler(t *testing.T) {
 			"number": "A123456",
 			"short_description":"Test incident 1",
 			"state":"new",
-			"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
+			"created_by":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 			"created_at":"2021-04-01T12:34:56+02:00",
-			"updated_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
+			"updated_by":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 			"updated_at":"2021-04-01T12:34:56+02:00",
 			"_embedded":{
 				"created_by":{
@@ -304,7 +310,7 @@ func TestGetIncidentHandler(t *testing.T) {
 					},
 				    "external_user_uuid": "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
 					"name":"Alfred",
-					"surname":"Kolecko",
+					"surname":"Koletschko",
 					"org_name":"a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 					"org_display_name":"KompiTech",
 				    "uuid": "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"
@@ -329,9 +335,14 @@ func TestListIncidentsHandler(t *testing.T) {
 
 	actorUser := actor.Actor{
 		BasicUser: user.BasicUser{
-			ExternalUserUUID: "8183eaca-56c0-41d9-9291-1d295dd53763",
+			ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+			Name:             "Alfred",
+			Surname:          "Koletschko",
+			OrgDisplayName:   "KompiTech",
+			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 		},
 	}
+	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
 	fieldEngineer := &fieldengineer.FieldEngineer{}
 	_ = fieldEngineer.SetUUID("123456789")
 	actorUser.SetFieldEngineer(fieldEngineer)
@@ -407,9 +418,9 @@ func TestListIncidentsHandler(t *testing.T) {
 					"number": "Accc265871",
 					"short_description":"Test incident 1",
 					"state":"new",
-					"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
+					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"created_at":"2021-04-01T12:34:56+02:00",
-					"updated_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
+					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"updated_at":"2021-04-01T12:34:56+02:00",
 					"_links":{
 						"self":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"},
@@ -422,9 +433,9 @@ func TestListIncidentsHandler(t *testing.T) {
 					"number": "555555",
 					"short_description":"Test incident 2",
 					"state":"resolved",
-					"created_by":"8540d943-8ccd-4ff1-8a08-0c3aa338c58e",
+					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"created_at": "2021-04-11T00:45:42+02:00",
-					"updated_by":"cd00bc0a-cc45-498c-9d2c-4d7e52efcd30",
+					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"updated_at":"2021-04-02T09:10:32+02:00",
 					"_links":{
 						"self":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb"},
@@ -440,6 +451,11 @@ func TestListIncidentsHandler(t *testing.T) {
 
 		var list []incident.Incident
 
+		basicUser2 := user.BasicUser{
+			ExternalUserUUID: "cd00bc0a-cc45-498c-9d2c-4d7e52efcd30",
+		}
+		_ = basicUser2.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+
 		fInc1 := incident.Incident{
 			Number:           "Accc265871",
 			ShortDescription: "Test incident 1",
@@ -451,9 +467,9 @@ func TestListIncidentsHandler(t *testing.T) {
 		require.NoError(t, err)
 		err = fInc1.SetState(state)
 		require.NoError(t, err)
-		err = fInc1.CreatedUpdated.SetCreated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
+		err = fInc1.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
-		err = fInc1.CreatedUpdated.SetUpdated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-01T12:34:56+02:00")
+		err = fInc1.CreatedUpdated.SetUpdated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 		list = append(list, fInc1)
 
@@ -468,9 +484,9 @@ func TestListIncidentsHandler(t *testing.T) {
 		require.NoError(t, err)
 		err = fInc2.SetState(state)
 		require.NoError(t, err)
-		err = fInc2.CreatedUpdated.SetCreated("8540d943-8ccd-4ff1-8a08-0c3aa338c58e", "2021-04-11T00:45:42+02:00")
+		err = fInc2.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-11T00:45:42+02:00")
 		require.NoError(t, err)
-		err = fInc2.CreatedUpdated.SetUpdated("cd00bc0a-cc45-498c-9d2c-4d7e52efcd30", "2021-04-02T09:10:32+02:00")
+		err = fInc2.CreatedUpdated.SetUpdated(basicUser2, "2021-04-02T09:10:32+02:00")
 		require.NoError(t, err)
 		list = append(list, fInc2)
 

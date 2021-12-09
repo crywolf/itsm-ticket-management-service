@@ -23,7 +23,7 @@ type incidentPresenter struct {
 }
 
 func (p incidentPresenter) RenderIncident(w http.ResponseWriter, inc incident.Incident, hypermediaMapper hypermedia.Mapper) {
-	embeddedCreatedBy := api.NewEmbeddedBasicUser(*inc.CreatedUpdated.CreatedBy())
+	embeddedCreatedBy := api.NewEmbeddedBasicUser(inc.CreatedUpdated.CreatedBy())
 	mapping := *hypermedia.EmbeddedResourcesMappingDefinition[embedded.CreatedBy].AddResource(embeddedCreatedBy)
 	//umapping := *hypermedia.EmbeddedResourcesMappingDefinition[embedded.UpdatedBy].AddResource(embeddedCreatedBy)
 
@@ -79,7 +79,7 @@ func (p incidentPresenter) convertIncidentToAPI(inc incident.Incident) api.Incid
 
 	updatedInfo := api.UpdatedInfo{
 		UpdatedAt: inc.CreatedUpdated.UpdatedAt().String(),
-		UpdatedBy: inc.CreatedUpdated.UpdatedBy().String(),
+		UpdatedBy: inc.CreatedUpdated.UpdatedByID().String(),
 	}
 
 	var timelogUUIDs []api.UUID

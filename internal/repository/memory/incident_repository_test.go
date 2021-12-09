@@ -6,19 +6,31 @@ import (
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
+	basicUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+
 	clock := mocks.FixedClock{}
 	repo := &IncidentRepositoryMemory{
+		basicUserRepository: BasicUserRepositoryMemory{
+			users: []user.BasicUser{basicUser},
+		},
 		Clock: clock,
 	}
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
-	actorID := ref.UUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
 	ctx := context.Background()
 
 	inc1 := incident.Incident{
@@ -27,9 +39,9 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
-	err := inc1.CreatedUpdated.SetCreatedBy(actorID)
+	err := inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
-	err = inc1.CreatedUpdated.SetUpdatedBy(actorID)
+	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
 	require.NoError(t, err)
 
 	incID, err := repo.AddIncident(ctx, channelID, inc1)
@@ -55,14 +67,34 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 }
 
 func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
+	basicUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+
+	basicUser2 := user.BasicUser{
+		ExternalUserUUID: "ee824cad-d7a6-4f48-87dc-e8461a9201c4",
+		Name:             "Jan",
+		Surname:          "Novak",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	_ = basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
+
 	clock := mocks.FixedClock{}
 	repo := &IncidentRepositoryMemory{
+		basicUserRepository: BasicUserRepositoryMemory{
+			users: []user.BasicUser{basicUser, basicUser2},
+		},
+
 		Clock: clock,
 	}
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
-	actorID := ref.UUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
-	actor2ID := ref.UUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
 
 	ctx := context.Background()
 
@@ -72,9 +104,9 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
-	err := inc1.CreatedUpdated.SetCreatedBy(actorID)
+	err := inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
-	err = inc1.CreatedUpdated.SetUpdatedBy(actorID)
+	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
 	require.NoError(t, err)
 
 	inc2 := incident.Incident{
@@ -83,9 +115,9 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		ShortDescription: "some short description 2",
 		Description:      "some description 2",
 	}
-	err = inc2.CreatedUpdated.SetCreatedBy(actorID)
+	err = inc2.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
-	err = inc2.CreatedUpdated.SetUpdatedBy(actor2ID)
+	err = inc2.CreatedUpdated.SetUpdatedBy(basicUser2)
 	require.NoError(t, err)
 
 	_, err = repo.AddIncident(ctx, channelID, inc1)
@@ -120,15 +152,15 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 			inc = inc2
 		}
 
-		assert.NotEmpty(t, retInc.UUID)
+		assert.NotEmpty(t, retInc.UUID())
 		assert.Equal(t, inc.Number, retInc.Number)
 		assert.Equal(t, inc.ExternalID, retInc.ExternalID)
 		assert.Equal(t, inc.ShortDescription, retInc.ShortDescription)
 		assert.Equal(t, inc.Description, retInc.Description)
 
 		// test correct timestamps
-		assert.NotEmpty(t, inc.CreatedUpdated.CreatedByID())
-		assert.Equal(t, inc.CreatedUpdated.CreatedByID(), retInc.CreatedUpdated.CreatedByID())
+		assert.NotEmpty(t, inc.CreatedUpdated.CreatedBy())
+		assert.Equal(t, inc.CreatedUpdated.CreatedBy(), retInc.CreatedUpdated.CreatedBy())
 		assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.CreatedAt())
 
 		assert.NotEmpty(t, inc.CreatedUpdated.UpdatedBy())

@@ -28,10 +28,10 @@ func (s *incidentService) CreateIncident(ctx context.Context, channelID ref.Chan
 		Description:      params.Description,
 	}
 
-	if err := newIncident.CreatedUpdated.SetCreatedBy(actor.BasicUser.UUID()); err != nil {
+	if err := newIncident.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
 		return ref.UUID(""), err
 	}
-	if err := newIncident.CreatedUpdated.SetUpdatedBy(actor.BasicUser.UUID()); err != nil {
+	if err := newIncident.CreatedUpdated.SetUpdatedBy(actor.BasicUser); err != nil {
 		return ref.UUID(""), err
 	}
 

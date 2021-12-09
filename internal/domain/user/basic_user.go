@@ -41,6 +41,11 @@ func (e *BasicUser) SetUUID(v ref.UUID) error {
 	return nil
 }
 
+// IsZero returns true if UUID has zero value
+func (e BasicUser) IsZero() bool {
+	return e.uuid.IsZero()
+}
+
 // ItemsPerPage returns a number of records to be shown per one page in the list of items for this user
 func (e BasicUser) ItemsPerPage() uint {
 	return DefaultItemsPerPage
