@@ -24,6 +24,10 @@ func (r *BasicUserRepositoryMemory) AddBasicUser(_ context.Context, _ ref.Channe
 		log.Fatal(err)
 	}
 
+	err = user.SetUUID(id)
+	if err != nil {
+		return "", domain.WrapErrorf(err, domain.ErrorCodeUnknown, "repo AddBasicUser")
+	}
 	r.users = append(r.users, user)
 
 	return id, nil

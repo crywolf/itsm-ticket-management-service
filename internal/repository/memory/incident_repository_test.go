@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
@@ -20,15 +21,14 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 		OrgDisplayName:   "KompiTech",
 		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 	}
-	_ = basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+	err := basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+	require.NoError(t, err)
 
 	clock := mocks.FixedClock{}
-	repo := &IncidentRepositoryMemory{
-		basicUserRepository: BasicUserRepositoryMemory{
-			users: []user.BasicUser{basicUser},
-		},
-		Clock: clock,
+	basicUserRepository := &BasicUserRepositoryMemory{
+		users: []user.BasicUser{basicUser},
 	}
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 	ctx := context.Background()
@@ -39,7 +39,7 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
-	err := inc1.CreatedUpdated.SetCreatedBy(basicUser)
+	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
 	require.NoError(t, err)
@@ -55,6 +55,7 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	assert.Equal(t, inc1.ExternalID, retInc.ExternalID)
 	assert.Equal(t, inc1.ShortDescription, retInc.ShortDescription)
 	assert.Equal(t, inc1.Description, retInc.Description)
+	assert.Empty(t, retInc.Timelogs)
 
 	// test correct timestamps
 	assert.NotEmpty(t, inc1.CreatedUpdated.CreatedByID())
@@ -64,6 +65,86 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	assert.NotEmpty(t, inc1.CreatedUpdated.UpdatedBy())
 	assert.Equal(t, inc1.CreatedUpdated.UpdatedBy(), retInc.CreatedUpdated.UpdatedBy())
 	assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.UpdatedAt())
+}
+
+func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
+	basicUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	err := basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
+	require.NoError(t, err)
+
+	basicUser2 := user.BasicUser{
+		ExternalUserUUID: "ee824cad-d7a6-4f48-87dc-e8461a9201c4",
+		Name:             "Jan",
+		Surname:          "Novak",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+	err = basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
+	require.NoError(t, err)
+
+	clock := mocks.FixedClock{}
+	basicUserRepository := &BasicUserRepositoryMemory{
+		users: []user.BasicUser{basicUser, basicUser2},
+	}
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
+
+	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
+	ctx := context.Background()
+
+	inc1 := incident.Incident{
+		Number:           "ABC123",
+		ExternalID:       "some external ID",
+		ShortDescription: "some short description",
+		Description:      "some description",
+	}
+	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
+	require.NoError(t, err)
+	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
+	require.NoError(t, err)
+
+	incID, err := repo.AddIncident(ctx, channelID, inc1)
+	require.NoError(t, err)
+
+	retInc, err := repo.GetIncident(ctx, channelID, incID)
+	require.NoError(t, err)
+
+	changedDescription := "some changed description"
+	retInc.Description = changedDescription
+	err = retInc.SetState(incident.StateInProgress)
+	require.NoError(t, err)
+
+	// set open timelog
+	openTimelog := &timelog.Timelog{}
+	err = openTimelog.CreatedUpdated.SetCreated(basicUser2, clock.NowFormatted())
+	require.NoError(t, err)
+	err = openTimelog.CreatedUpdated.SetUpdated(basicUser, clock.NowFormatted())
+	require.NoError(t, err)
+
+	retInc.SetOpenTimelog(openTimelog)
+
+	// update incident with open timelog
+	retIncID, err := repo.UpdateIncident(ctx, channelID, retInc)
+	require.NoError(t, err)
+	assert.Equal(t, incID, retIncID)
+
+	// get updated incident
+	updatedInc, err := repo.GetIncident(ctx, channelID, incID)
+	require.NoError(t, err)
+
+	assert.Equal(t, incID, updatedInc.UUID())
+	assert.Equal(t, inc1.Number, updatedInc.Number)
+	assert.Equal(t, inc1.ExternalID, updatedInc.ExternalID)
+	assert.Equal(t, inc1.ShortDescription, updatedInc.ShortDescription)
+	assert.Equal(t, changedDescription, updatedInc.Description)
+	assert.Len(t, updatedInc.Timelogs, 1, "timelogs count")
+
+	assert.Equal(t, retInc.OpenTimelog(), updatedInc.OpenTimelog())
 }
 
 func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
@@ -83,16 +164,14 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		OrgDisplayName:   "KompiTech",
 		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 	}
-	_ = basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
+	err := basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
+	require.NoError(t, err)
 
 	clock := mocks.FixedClock{}
-	repo := &IncidentRepositoryMemory{
-		basicUserRepository: BasicUserRepositoryMemory{
-			users: []user.BasicUser{basicUser, basicUser2},
-		},
-
-		Clock: clock,
+	basicUserRepository := &BasicUserRepositoryMemory{
+		users: []user.BasicUser{basicUser, basicUser2},
 	}
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 
@@ -104,7 +183,7 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
-	err := inc1.CreatedUpdated.SetCreatedBy(basicUser)
+	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
 	require.NoError(t, err)

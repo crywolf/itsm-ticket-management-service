@@ -30,6 +30,7 @@ type Incident struct {
 
 	openTimelog *timelog.Timelog
 
+	// TODO make it private - timelogIDs
 	Timelogs []ref.UUID
 
 	CreatedUpdated types.CreatedUpdated

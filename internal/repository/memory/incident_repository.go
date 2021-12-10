@@ -21,35 +21,38 @@ type Clock interface {
 
 // IncidentRepositoryMemory keeps data in memory
 type IncidentRepositoryMemory struct {
-	basicUserRepository BasicUserRepositoryMemory
+	basicUserRepository *BasicUserRepositoryMemory
 	Rand                io.Reader
-	Clock               Clock
+	clock               Clock
 	incidents           []Incident
 	timelogs            map[string]Timelog
 }
 
+// NewIncidentRepositoryMemory returns new initialized repository
+func NewIncidentRepositoryMemory(clock Clock, basicUserRepo *BasicUserRepositoryMemory) *IncidentRepositoryMemory {
+	return &IncidentRepositoryMemory{
+		basicUserRepository: basicUserRepo,
+		clock:               clock,
+		timelogs:            make(map[string]Timelog),
+	}
+}
+
 // AddIncident adds the given incident to the repository
 func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
-	id, err := repository.GenerateUUID(r.Rand)
+	now := r.clock.Now().Format(time.RFC3339)
+
+	incidentID, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	now := r.Clock.Now().Format(time.RFC3339)
-
-	var timelogUUIDs []string
-	for _, tmlg := range inc.Timelogs {
-		timelogUUIDs = append(timelogUUIDs, tmlg.String())
-	}
-
 	storedInc := Incident{
-		ID:               id.String(),
+		ID:               incidentID.String(),
 		Number:           inc.Number,
 		ExternalID:       inc.ExternalID,
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
 		State:            incident.StateNew.String(),
-		Timelogs:         timelogUUIDs,
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        now,
 		UpdatedBy:        inc.CreatedUpdated.UpdatedByID().String(),
@@ -57,7 +60,73 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 	}
 	r.incidents = append(r.incidents, storedInc)
 
-	return id, nil
+	return incidentID, nil
+}
+
+// UpdateIncident updates the given incident in the repository
+func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
+	var err error
+	now := r.clock.Now().Format(time.RFC3339)
+
+	if inc.HasOpenTimelog() {
+		openTimelog := inc.OpenTimelog()
+		createdAt := openTimelog.CreatedUpdated.CreatedAt().String()
+		updatedAt := openTimelog.CreatedUpdated.UpdatedAt().String()
+
+		timelogID := openTimelog.UUID()
+		if timelogID.IsZero() { // newly opened => set new UUID
+			timelogID, err = repository.GenerateUUID(r.Rand)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			createdAt = now
+			updatedAt = now
+
+			inc.Timelogs = append(inc.Timelogs, timelogID)
+		}
+
+		storedTimelog := Timelog{
+			ID:           timelogID.String(),
+			Remote:       openTimelog.Remote,
+			Work:         openTimelog.Work,
+			VisitSummary: openTimelog.VisitSummary,
+			CreatedBy:    openTimelog.CreatedUpdated.CreatedByID().String(),
+			CreatedAt:    createdAt,
+			UpdatedBy:    openTimelog.CreatedUpdated.UpdatedByID().String(),
+			UpdatedAt:    updatedAt,
+		}
+
+		r.timelogs[storedTimelog.ID] = storedTimelog
+	}
+
+	var timelogUUIDs []string
+	for _, timelogID := range inc.Timelogs {
+		timelogUUIDs = append(timelogUUIDs, timelogID.String())
+	}
+
+	storedInc := Incident{
+		ID:               inc.UUID().String(),
+		Number:           inc.Number,
+		ExternalID:       inc.ExternalID,
+		ShortDescription: inc.ShortDescription,
+		Description:      inc.Description,
+		State:            incident.StateNew.String(),
+		Timelogs:         timelogUUIDs,
+		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
+		CreatedAt:        inc.CreatedUpdated.CreatedAt().String(),
+		UpdatedBy:        inc.CreatedUpdated.UpdatedByID().String(),
+		UpdatedAt:        now,
+	}
+
+	for i := range r.incidents {
+		if r.incidents[i].ID == inc.UUID().String() {
+			r.incidents[i] = storedInc
+			return inc.UUID(), nil
+		}
+	}
+
+	return inc.UUID(), domain.WrapErrorf(ErrNotFound, domain.ErrorCodeNotFound, "error updating incident in repository")
 }
 
 // GetIncident returns the incident with given ID from the repository
@@ -78,7 +147,7 @@ func (r *IncidentRepositoryMemory) GetIncident(ctx context.Context, channelID re
 		}
 	}
 
-	return incident.Incident{}, domain.WrapErrorf(ErrNotFound, domain.ErrorCodeNotFound, "repo GetIncident")
+	return incident.Incident{}, domain.WrapErrorf(ErrNotFound, domain.ErrorCodeNotFound, "error loading incident from repository")
 }
 
 // ListIncidents returns the list of incidents from the repository
@@ -112,11 +181,11 @@ func (r *IncidentRepositoryMemory) ListIncidents(ctx context.Context, channelID 
 
 func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Context, channelID ref.ChannelID, storedInc Incident) (incident.Incident, error) {
 	var inc incident.Incident
-	errMsg := "error loading incident from the repository"
+	errMsg := "error loading incident from repository (%s)"
 
 	err := inc.SetUUID(ref.UUID(storedInc.ID))
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedInc.ID")
 	}
 
 	inc.Number = storedInc.Number
@@ -126,74 +195,75 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 
 	// load and set open timelog if any
 	var timelogUUIDs []ref.UUID
-	for _, tmlg := range storedInc.Timelogs {
-		timelogUUIDs = append(timelogUUIDs, ref.UUID(tmlg))
+	for _, timelogID := range storedInc.Timelogs {
+		timelogUUIDs = append(timelogUUIDs, ref.UUID(timelogID))
 	}
 
 	inc.Timelogs = timelogUUIDs
 
 	for _, timelogID := range storedInc.Timelogs {
-		storedTmlg := r.timelogs[timelogID]
-		if storedTmlg.Work > 0 { // timelog is open
-			openTmlg := &timelog.Timelog{
-				Remote:       storedTmlg.Remote,
-				Work:         storedTmlg.Work,
-				VisitSummary: storedTmlg.VisitSummary,
+		storedTimelog := r.timelogs[timelogID]
+
+		if storedTimelog.Work == 0 { // timelog is open
+			openTimelog := &timelog.Timelog{
+				Remote:       storedTimelog.Remote,
+				Work:         storedTimelog.Work,
+				VisitSummary: storedTimelog.VisitSummary,
 			}
 
-			createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTmlg.CreatedBy))
+			createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTimelog.CreatedBy))
 			if err != nil {
-				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedTimelog.createdBy")
 			}
 
-			err = openTmlg.CreatedUpdated.SetCreated(createdByUser, types.DateTime(storedTmlg.CreatedAt))
+			err = openTimelog.CreatedUpdated.SetCreated(createdByUser, types.DateTime(storedTimelog.CreatedAt))
 			if err != nil {
-				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedTimelog.createdAt")
 			}
 
-			updatedByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTmlg.UpdatedBy))
+			updatedByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTimelog.UpdatedBy))
 			if err != nil {
-				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedTimelog.UpdatedBy")
 			}
 
-			err = openTmlg.CreatedUpdated.SetUpdated(updatedByUser, types.DateTime(storedTmlg.UpdatedAt))
+			err = openTimelog.CreatedUpdated.SetUpdated(updatedByUser, types.DateTime(storedTimelog.UpdatedAt))
 			if err != nil {
-				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedTimelog.UpdatedAt")
 			}
 
-			inc.SetOpenTimelog(openTmlg)
+			inc.SetOpenTimelog(openTimelog)
 			break
 		}
 	}
 
 	state, err := incident.NewStateFromString(storedInc.State)
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "state")
 	}
 
 	err = inc.SetState(state)
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "state")
 	}
 
 	createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedInc.CreatedBy))
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedInc.CreatedBy")
 	}
 
 	err = inc.CreatedUpdated.SetCreated(createdByUser, types.DateTime(storedInc.CreatedAt))
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedInc.CreatedAt")
 	}
 
 	updatedByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedInc.UpdatedBy))
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedInc.UpdatedBy")
 	}
 
 	err = inc.CreatedUpdated.SetUpdated(updatedByUser, types.DateTime(storedInc.UpdatedAt))
 	if err != nil {
-		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg)
+		return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "storedInc.UpdatedAt")
 	}
 
 	return inc, nil

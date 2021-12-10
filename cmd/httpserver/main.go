@@ -35,10 +35,6 @@ func main() {
 
 	loadEnvConfiguration()
 
-	incidentRepository := &memory.IncidentRepositoryMemory{
-		Clock: realClock{},
-	}
-
 	basicUserRepository := &memory.BasicUserRepositoryMemory{}
 	// add test user - just for playing and testing
 	_, err := basicUserRepository.AddBasicUser(context.Background(), "", user.BasicUser{
@@ -52,6 +48,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	incidentRepository := memory.NewIncidentRepositoryMemory(realClock{}, basicUserRepository)
 
 	incidentService := incidentsvc.NewIncidentService(incidentRepository)
 
