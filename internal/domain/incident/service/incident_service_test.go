@@ -3,6 +3,7 @@ package incidentsvc
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -35,7 +36,7 @@ func Test_incidentService_CreateAndRetrieveIncidents(t *testing.T) {
 
 	actorUser := actor.Actor{BasicUser: basicUser}
 
-	clock := mocks.FixedClock{}
+	clock := mocks.NewFixedClock()
 	repo := memory.NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	svc := NewIncidentService(repo)
@@ -105,7 +106,7 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 
 	actorUser := actor.Actor{BasicUser: basicUser}
 
-	clock := mocks.FixedClock{}
+	clock := mocks.NewFixedClock()
 	repo := memory.NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	svc := NewIncidentService(repo)
@@ -124,6 +125,9 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	origInc, err := svc.GetIncident(ctx, channelID, actorUser, incID)
 	require.NoError(t, err)
 
+	// add some time
+	clock.AddTime(100 * time.Second)
+
 	updateParams := api.UpdateIncidentParams{
 		ShortDescription: "Some updated short description",
 	}
@@ -138,5 +142,11 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	assert.Equal(t, origInc.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, updateParams.ShortDescription, updatedInc.ShortDescription)
 	assert.Equal(t, "", updatedInc.Description)
+	// timestamps
+	assert.Equal(t, origInc.CreatedUpdated.CreatedBy(), updatedInc.CreatedUpdated.CreatedBy())
+	assert.Equal(t, origInc.CreatedUpdated.CreatedAt(), updatedInc.CreatedUpdated.CreatedAt())
+	assert.Equal(t, origInc.CreatedUpdated.UpdatedBy(), updatedInc.CreatedUpdated.UpdatedBy())
+	// timestamp updatedAt should change
+	assert.NotEqual(t, origInc.CreatedUpdated.UpdatedAt(), updatedInc.CreatedUpdated.UpdatedAt())
 	assert.Equal(t, updatedInc.UUID(), incID)
 }

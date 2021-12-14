@@ -10,6 +10,7 @@ import (
 	"time"
 
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	externalusersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/external_user_service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest"
@@ -22,6 +23,10 @@ import (
 type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
+
+func (c realClock) NowFormatted() types.DateTime {
+	return types.DateTime(c.Now().Format(time.RFC3339))
+}
 
 func main() {
 	l, _ := zap.NewProduction()

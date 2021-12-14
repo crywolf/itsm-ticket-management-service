@@ -24,7 +24,7 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	err := basicUser.SetUUID("f49d5fd5-8da4-4779-b5ba-32e78aa2c444")
 	require.NoError(t, err)
 
-	clock := mocks.FixedClock{}
+	clock := mocks.NewFixedClock()
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser},
 	}
@@ -91,7 +91,7 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser, basicUser2},
 	}
-	clock := mocks.FixedClock{}
+	clock := mocks.NewFixedClock()
 	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
@@ -167,7 +167,7 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	err := basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
 	require.NoError(t, err)
 
-	clock := mocks.FixedClock{}
+	clock := mocks.NewFixedClock()
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser, basicUser2},
 	}

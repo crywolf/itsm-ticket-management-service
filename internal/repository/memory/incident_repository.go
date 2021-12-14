@@ -16,7 +16,11 @@ import (
 
 // Clock provides Now method to enable mocking
 type Clock interface {
+	// Now returns current time
 	Now() time.Time
+
+	// NowFormatted returns time in RFC3339 format
+	NowFormatted() types.DateTime
 }
 
 // IncidentRepositoryMemory keeps data in memory
@@ -39,7 +43,7 @@ func NewIncidentRepositoryMemory(clock Clock, basicUserRepo *BasicUserRepository
 
 // AddIncident adds the given incident to the repository
 func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
-	now := r.clock.Now().Format(time.RFC3339)
+	now := r.clock.NowFormatted().String()
 
 	incidentID, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
@@ -66,7 +70,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 // UpdateIncident updates the given incident in the repository
 func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.ChannelID, inc incident.Incident) (ref.UUID, error) {
 	var err error
-	now := r.clock.Now().Format(time.RFC3339)
+	now := r.clock.NowFormatted().String()
 
 	if inc.HasOpenTimelog() {
 		openTimelog := inc.OpenTimelog()
