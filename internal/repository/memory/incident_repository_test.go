@@ -88,10 +88,10 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 	err = basicUser2.SetUUID("00271cb4-3716-4203-9124-1d2f515ae0b2")
 	require.NoError(t, err)
 
-	clock := mocks.FixedClock{}
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser, basicUser2},
 	}
+	clock := mocks.FixedClock{}
 	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")

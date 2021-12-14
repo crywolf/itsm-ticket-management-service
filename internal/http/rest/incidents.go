@@ -14,6 +14,7 @@ import (
 
 func (s Server) registerIncidentRoutes() {
 	s.router.POST("/incidents", s.CreateIncident())
+	s.router.PATCH("/incidents/:id", s.UpdateIncident())
 	s.router.GET("/incidents/:id", s.GetIncident())
 	s.router.GET("/incidents", s.ListIncidents())
 }
@@ -30,7 +31,7 @@ func (s Server) registerIncidentRoutes() {
 // CreateIncident returns handler for creating single incident
 func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		incPayload, err := s.inputPayloadConverters.incident.IncidentParamsFromBody(r)
+		incPayload, err := s.inputPayloadConverters.incident.IncidentCreateParamsFromBody(r)
 		if err != nil {
 			s.logger.Warnw("CreateIncident handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
@@ -56,6 +57,55 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
+		s.presenters.incident.RenderLocationHeader(w, listIncidentsRoute, newID)
+	}
+}
+
+// swagger:route PATCH /incidents/{uuid} incidents UpdateIncident
+// Updates specified incident
+// responses:
+//	204: incidentNoContentResponse
+//	400: errorResponse400
+//	401: errorResponse401
+//  403: errorResponse403
+//	404: errorResponse404
+
+// UpdateIncident returns handler for creating single incident
+func (s *Server) UpdateIncident() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		if id == "" {
+			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
+			s.logger.Errorw("UpdateIncident handler failed", "error", err)
+			s.presenters.base.RenderError(w, "", err)
+			return
+		}
+
+		incPayload, err := s.inputPayloadConverters.incident.IncidentUpdateParamsFromBody(r)
+		if err != nil {
+			s.logger.Warnw("UpdateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		channelID, err := s.assertChannelID(w, r)
+		if err != nil {
+			return
+		}
+
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
+			s.logger.Errorw("UpdateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		newID, err := s.incidentService.UpdateIncident(r.Context(), channelID, actorUser, ref.UUID(id), incPayload)
+		if err != nil {
+			s.logger.Errorw("UpdateIncident handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
 		s.presenters.incident.RenderLocationHeader(w, listIncidentsRoute, newID)
 	}
 }

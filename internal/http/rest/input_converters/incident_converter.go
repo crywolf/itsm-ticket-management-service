@@ -19,9 +19,20 @@ type incidentPayloadConverter struct {
 	*BasePayloadConverter
 }
 
-// IncidentParamsFromBody converts JSON payload to api.CreateIncidentParams
-func (c incidentPayloadConverter) IncidentParamsFromBody(r *http.Request) (api.CreateIncidentParams, error) {
+// IncidentCreateParamsFromBody converts JSON payload to api.CreateIncidentParams
+func (c incidentPayloadConverter) IncidentCreateParamsFromBody(r *http.Request) (api.CreateIncidentParams, error) {
 	var incPayload api.CreateIncidentParams
+
+	if err := c.unmarshalFromBody(r, &incPayload); err != nil {
+		return incPayload, err
+	}
+
+	return incPayload, nil
+}
+
+// IncidentUpdateParamsFromBody converts JSON payload to api.UpdateIncidentParams
+func (c incidentPayloadConverter) IncidentUpdateParamsFromBody(r *http.Request) (api.UpdateIncidentParams, error) {
+	var incPayload api.UpdateIncidentParams
 
 	if err := c.unmarshalFromBody(r, &incPayload); err != nil {
 		return incPayload, err

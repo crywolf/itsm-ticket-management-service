@@ -49,6 +49,28 @@ type CreateIncidentParams struct {
 	Description string `json:"description"`
 }
 
+// swagger:parameters CreateIncident
+type createIncidentParameterWrapper struct {
+	// in: body
+	// required: true
+	Body CreateIncidentParams
+}
+
+// UpdateIncidentParams is the payload used to update the incident
+// swagger:model
+type UpdateIncidentParams struct {
+	ShortDescription string `json:"short_description" validate:"required"`
+
+	Description string `json:"description"`
+}
+
+// swagger:parameters UpdateIncident
+type updateIncidentParameterWrapper struct {
+	// in: body
+	// required: true
+	Body UpdateIncidentParams
+}
+
 // IncidentResponse ...
 type IncidentResponse struct {
 	Incident
@@ -91,11 +113,10 @@ type incidentCreatedResponseWrapper struct {
 	Location string
 }
 
-// swagger:parameters CreateIncident
-type createIncidentParameterWrapper struct {
-	AuthorizationHeaders
-
-	// in: body
-	// required: true
-	Body CreateIncidentParams
+// No content
+// swagger:response incidentNoContentResponse
+type incidentNoContentResponseWrapper struct {
+	// URI of the resource
+	// example: http://localhost:8080/incidents/2af4f493-0bd5-4513-b440-6cbb465feadb
+	Location string
 }

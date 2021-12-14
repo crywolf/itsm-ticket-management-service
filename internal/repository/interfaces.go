@@ -22,6 +22,9 @@ type IncidentRepository interface {
 	// AddIncident adds the given incident to the repository
 	AddIncident(ctx context.Context, channelID ref.ChannelID, inc incident.Incident) (ref.UUID, error)
 
+	// UpdateIncident updates the given incident in the repository
+	UpdateIncident(ctx context.Context, channelID ref.ChannelID, inc incident.Incident) (ref.UUID, error)
+
 	// GetIncident returns the incident with the given ID from the repository
 	GetIncident(ctx context.Context, channelID ref.ChannelID, ID ref.UUID) (incident.Incident, error)
 

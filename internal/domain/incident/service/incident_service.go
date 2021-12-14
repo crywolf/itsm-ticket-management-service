@@ -12,17 +12,18 @@ import (
 )
 
 // NewIncidentService creates the incident service
-func NewIncidentService(r repository.IncidentRepository) IncidentService {
-	return &incidentService{r}
+func NewIncidentService(repo repository.IncidentRepository) IncidentService {
+	return &incidentService{repo}
 }
 
 type incidentService struct {
-	r repository.IncidentRepository
+	repo repository.IncidentRepository
 }
 
 func (s *incidentService) CreateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, params api.CreateIncidentParams) (ref.UUID, error) {
-	// TODO validate if Caller or FE is not trying to set other fields then he is allowed to set, only SD agent can set everything (also in Update)
+	// TODO validate that Caller or FE is not trying to set other fields then he is allowed to set, only SD agent can set everything (also in Update)
 	newIncident := incident.Incident{
+		Number:           params.Number,
 		ExternalID:       params.ExternalID,
 		ShortDescription: params.ShortDescription,
 		Description:      params.Description,
@@ -34,14 +35,30 @@ func (s *incidentService) CreateIncident(ctx context.Context, channelID ref.Chan
 	if err := newIncident.CreatedUpdated.SetUpdatedBy(actor.BasicUser); err != nil {
 		return ref.UUID(""), err
 	}
+	return s.repo.AddIncident(ctx, channelID, newIncident)
+}
 
-	return s.r.AddIncident(ctx, channelID, newIncident)
+// UpdateIncident updates the given incident in the repository
+func (s *incidentService) UpdateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID, params api.UpdateIncidentParams) (ref.UUID, error) {
+	inc, err := s.repo.GetIncident(ctx, channelID, ID)
+	if err != nil {
+		return ref.UUID(""), err
+	}
+
+	inc.ShortDescription = params.ShortDescription
+	inc.Description = params.Description
+
+	if err := inc.CreatedUpdated.SetUpdatedBy(actor.BasicUser); err != nil {
+		return ref.UUID(""), err
+	}
+
+	return s.repo.UpdateIncident(ctx, channelID, inc)
 }
 
 func (s *incidentService) GetIncident(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, ID ref.UUID) (incident.Incident, error) {
-	return s.r.GetIncident(ctx, channelID, ID)
+	return s.repo.GetIncident(ctx, channelID, ID)
 }
 
 func (s *incidentService) ListIncidents(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, params converters.PaginationParams) (repository.IncidentList, error) {
-	return s.r.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
+	return s.repo.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
 }

@@ -16,6 +16,9 @@ type IncidentService interface {
 	// CreateIncident creates new incident and adds it to the repository
 	CreateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, params api.CreateIncidentParams) (ref.UUID, error)
 
+	// UpdateIncident updates the given incident in the repository
+	UpdateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID, params api.UpdateIncidentParams) (ref.UUID, error)
+
 	// GetIncident returns the incident with the given ID from the repository
 	GetIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID) (incident.Incident, error)
 

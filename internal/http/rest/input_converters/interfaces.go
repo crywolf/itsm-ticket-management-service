@@ -8,7 +8,7 @@ import (
 
 // PaginationParams provides information about current requested page number and a number of items per page to be displayed
 type PaginationParams interface {
-	// Page returns requested page number to be returned
+	// Page is the requested page number to be returned
 	Page() uint
 
 	// ItemsPerPage returns how many items per page should be displayed
@@ -17,6 +17,9 @@ type PaginationParams interface {
 
 // IncidentPayloadConverter provides conversion from JSON request body payload to object
 type IncidentPayloadConverter interface {
-	// IncidentParamsFromBody converts JSON payload to api.CreateIncidentParams
-	IncidentParamsFromBody(r *http.Request) (api.CreateIncidentParams, error)
+	// IncidentCreateParamsFromBody converts JSON payload to api.CreateIncidentParams
+	IncidentCreateParamsFromBody(r *http.Request) (api.CreateIncidentParams, error)
+
+	// IncidentUpdateParamsFromBody converts JSON payload to api.UpdateIncidentParams
+	IncidentUpdateParamsFromBody(r *http.Request) (api.UpdateIncidentParams, error)
 }

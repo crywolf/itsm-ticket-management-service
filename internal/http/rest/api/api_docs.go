@@ -22,7 +22,12 @@ package api
 // swagger:strfmt uuid
 type UUID string
 
-// swagger:parameters GetIncident
+// swagger:parameters CreateIncident ListIncidents
+type generalNoParameterWrapper struct {
+	AuthorizationHeaders
+}
+
+// swagger:parameters GetIncident UpdateIncident
 type generalIDParameterWrapper struct {
 	AuthorizationHeaders
 
@@ -30,11 +35,6 @@ type generalIDParameterWrapper struct {
 	// in: path
 	// required: true
 	UUID UUID `json:"uuid"`
-}
-
-// swagger:parameters ListIncidents
-type generalListParameterWrapper struct {
-	AuthorizationHeaders
 }
 
 // AuthorizationHeaders represents general authorization header parameters used in many API calls

@@ -352,6 +352,17 @@ definitions:
     description: UUID represents UUID of a resource
     type: string
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref
+  UpdateIncidentParams:
+    description: UpdateIncidentParams is the payload used to update the incident
+    properties:
+      description:
+        type: string
+        x-go-name: Description
+      short_description:
+        type: string
+        x-go-name: ShortDescription
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   UpdatedInfo:
     description: UpdatedInfo contains timestamp and user who updated the resource
     properties:
@@ -471,6 +482,47 @@ paths:
           $ref: '#/responses/errorResponse404'
       tags:
       - incidents
+    patch:
+      description: Updates specified incident
+      operationId: UpdateIncident
+      parameters:
+      - description: Bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+        x-go-name: Authorization
+      - format: uuid
+        in: header
+        name: channel-id
+        required: true
+        type: string
+        x-go-name: ChannelID
+      - description: ID of the resource
+        format: uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+        x-go-name: UUID
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateIncidentParams'
+      responses:
+        "204":
+          $ref: '#/responses/incidentNoContentResponse'
+        "400":
+          $ref: '#/responses/errorResponse400'
+        "401":
+          $ref: '#/responses/errorResponse401'
+        "403":
+          $ref: '#/responses/errorResponse403'
+        "404":
+          $ref: '#/responses/errorResponse404'
+      tags:
+      - incidents
 produces:
 - application/json
 responses:
@@ -574,6 +626,13 @@ responses:
       - size
       - page
       type: object
+  incidentNoContentResponse:
+    description: No content
+    headers:
+      Location:
+        description: URI of the resource
+        example: http://localhost:8080/incidents/2af4f493-0bd5-4513-b440-6cbb465feadb
+        type: string
   incidentResponse:
     description: Data structure representing a single incident
     schema:

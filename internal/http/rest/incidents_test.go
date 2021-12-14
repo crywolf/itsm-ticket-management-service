@@ -148,6 +148,132 @@ func TestCreateIncidentHandler(t *testing.T) {
 	})
 }
 
+func TestUpdateIncidentHandler(t *testing.T) {
+	logger, _ := testutils.NewTestLogger()
+	defer func() { _ = logger.Sync() }()
+
+	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
+	bearerToken := "some valid Bearer token"
+
+	actorUser := actor.Actor{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
+		},
+	}
+	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+
+	t.Parallel()
+
+	t.Run("when body payload is not valid JSON", func(t *testing.T) {
+		us := new(mocks.ExternalUserServiceMock)
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
+			Return(actorUser, nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalLocationAddress: "http://service.url",
+			ExternalUserService:     us,
+		})
+
+		payload := []byte(`{"invalid json request"}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("PATCH", "/incidents/7e0d38d1-e5f5-4211-b2aa-3b142e4da80e", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"Request body contains badly-formed JSON (at position 24): invalid character '}' after object key"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
+	t.Run("when body payload is not valid (ie. validation fails)", func(t *testing.T) {
+		us := new(mocks.ExternalUserServiceMock)
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
+			Return(actorUser, nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			ExternalLocationAddress: "http://service.url",
+			ExternalUserService:     us,
+		})
+
+		payload := []byte(`{
+			"description": "changing the description"
+		}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("PATCH", "/incidents/7e0d38d1-e5f5-4211-b2aa-3b142e4da80e", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		defer func() { _ = resp.Body.Close() }()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("could not read response: %v", err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
+
+		expectedJSON := `{"error":"'short_description' is a required field"}`
+		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
+	})
+
+	t.Run("when body payload is valid", func(t *testing.T) {
+		us := new(mocks.ExternalUserServiceMock)
+		us.On("ActorFromRequest", bearerToken, ref.ChannelID(channelID), "").
+			Return(actorUser, nil)
+
+		incidentSvc := new(mocks.IncidentServiceMock)
+		incidentSvc.On("UpdateIncident", ref.ChannelID(channelID), actorUser, ref.UUID("7e0d38d1-e5f5-4211-b2aa-3b142e4da80e"),
+			mock.AnythingOfType("api.UpdateIncidentParams")).Return(ref.UUID("7e0d38d1-e5f5-4211-b2aa-3b142e4da80e"), nil)
+
+		server := NewServer(Config{
+			Addr:                    "service.url",
+			Logger:                  logger,
+			IncidentService:         incidentSvc,
+			ExternalLocationAddress: "http://service.url",
+			ExternalUserService:     us,
+		})
+
+		payload := []byte(`{
+			"short_description": "changed description"
+		}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("PATCH", "/incidents/7e0d38d1-e5f5-4211-b2aa-3b142e4da80e", body)
+		req.Header.Set("channel-id", channelID)
+		req.Header.Set("authorization", bearerToken)
+
+		w := httptest.NewRecorder()
+		server.ServeHTTP(w, req)
+		resp := w.Result()
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Status code")
+		expectedLocation := "http://service.url/incidents/7e0d38d1-e5f5-4211-b2aa-3b142e4da80e"
+		assert.Equal(t, expectedLocation, resp.Header.Get("Location"), "Location header")
+	})
+}
+
 func TestGetIncidentHandler(t *testing.T) {
 	logger, _ := testutils.NewTestLogger()
 	defer func() { _ = logger.Sync() }()

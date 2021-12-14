@@ -2,6 +2,7 @@ package incident
 
 import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
@@ -41,7 +42,7 @@ func (e *Incident) Cancel(actor actor.Actor) error {
 	return nil
 }
 
-func (e *Incident) canBeCancelled(actor actor.Actor) error {
+func (e *Incident) canBeCancelled(_ actor.Actor) error {
 	if e.state != StateNew {
 		return domain.NewErrorf(domain.ErrorCodeInvalidArgument, "ticket can be cancelled only in NEW state")
 	}
@@ -50,7 +51,7 @@ func (e *Incident) canBeCancelled(actor actor.Actor) error {
 }
 
 // StartWorking can be used by assigned field engineer to start working on the ticket
-func (e *Incident) StartWorking(actor actor.Actor) error {
+func (e *Incident) StartWorking(actor actor.Actor, remote bool) error {
 	if err := e.canStartWorking(actor); err != nil {
 		return err
 	}
@@ -58,7 +59,17 @@ func (e *Incident) StartWorking(actor actor.Actor) error {
 	if err := e.SetState(StateInProgress); err != nil {
 		return err
 	}
-	// TODO - open timelog ...
+
+	// open new timelog
+	newTimelog := &timelog.Timelog{
+		Remote: remote,
+	}
+	if err := newTimelog.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
+		return err
+	}
+
+	e.openTimelog = newTimelog
+
 	return nil
 }
 
