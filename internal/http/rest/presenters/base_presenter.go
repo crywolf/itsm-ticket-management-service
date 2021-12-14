@@ -30,14 +30,24 @@ type BasePresenter struct {
 	serverAddr string
 }
 
-// RenderLocationHeader sends Location header containing URI in the form 'route/resourceID'.
+// RenderCreatedHeader sends Location header containing URI in the form 'route/resourceID'.
 // Use it for rendering location of newly created resource
-func (p BasePresenter) RenderLocationHeader(w http.ResponseWriter, route string, resourceID ref.UUID) {
+func (p BasePresenter) RenderCreatedHeader(w http.ResponseWriter, route string, resourceID ref.UUID) {
 	resourceURI := fmt.Sprintf("%s%s/%s", p.serverAddr, route, resourceID)
 
 	w.Header().Set("Location", resourceURI)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+}
+
+// RenderNoContentHeader sends Location header containing URI in the form 'route/resourceID'.
+// Use it for rendering location of updated resource
+func (p BasePresenter) RenderNoContentHeader(w http.ResponseWriter, route string, resourceID ref.UUID) {
+	resourceURI := fmt.Sprintf("%s%s/%s", p.serverAddr, route, resourceID)
+
+	w.Header().Set("Location", resourceURI)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // RenderError replies to the request with the specified error message and HTTP code

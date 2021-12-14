@@ -22,7 +22,11 @@ type ErrorPresenter interface {
 
 // LocationHeaderPresenter allows sending Location header with URI of the resource
 type LocationHeaderPresenter interface {
-	// RenderLocationHeader sends Location header containing URI in the form 'route/resourceID'.
+	// RenderCreatedHeader sends Location header containing URI in the form 'route/resourceID'.
 	// Use it for rendering location of newly created resource
-	RenderLocationHeader(w http.ResponseWriter, route string, resourceID ref.UUID)
+	RenderCreatedHeader(w http.ResponseWriter, route string, resourceID ref.UUID)
+
+	// RenderNoContentHeader sends Location header containing URI in the form 'route/resourceID'.
+	// Use it for rendering location of updated resource
+	RenderNoContentHeader(w http.ResponseWriter, route string, resourceID ref.UUID)
 }

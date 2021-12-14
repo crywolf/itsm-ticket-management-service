@@ -177,6 +177,20 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 
 	ctx := context.Background()
 
+	// empty list
+	emptyList, err := repo.ListIncidents(ctx, channelID, 1, 10)
+	require.NoError(t, err)
+
+	// pagination
+	assert.Equal(t, 0, emptyList.Size)
+	assert.Equal(t, 0, emptyList.Total)
+	assert.Equal(t, 1, emptyList.Page)
+	assert.Equal(t, 1, emptyList.First)
+	assert.Equal(t, 1, emptyList.Last)
+	assert.Equal(t, 0, emptyList.Prev)
+	assert.Equal(t, 0, emptyList.Next)
+	assert.Len(t, emptyList.Result, 0)
+
 	inc1 := incident.Incident{
 		Number:           "Bca258",
 		ExternalID:       "some external ID",

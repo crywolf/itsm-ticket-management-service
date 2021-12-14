@@ -165,7 +165,10 @@ func (r *IncidentRepositoryMemory) ListIncidents(ctx context.Context, channelID 
 	firstElementIndex := pagination.FirstElementIndex
 	lastElementIndex := pagination.LastElementIndex
 
-	perPageList := r.incidents[firstElementIndex : lastElementIndex+1]
+	var perPageList []Incident
+	if total > 0 {
+		perPageList = r.incidents[firstElementIndex : lastElementIndex+1]
+	}
 
 	for _, storedInc := range perPageList {
 		inc, err := r.convertStoredToDomainIncident(ctx, channelID, storedInc)

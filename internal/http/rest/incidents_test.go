@@ -268,7 +268,7 @@ func TestUpdateIncidentHandler(t *testing.T) {
 		server.ServeHTTP(w, req)
 		resp := w.Result()
 
-		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Status code")
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode, "Status code")
 		expectedLocation := "http://service.url/incidents/7e0d38d1-e5f5-4211-b2aa-3b142e4da80e"
 		assert.Equal(t, expectedLocation, resp.Header.Get("Location"), "Location header")
 	})

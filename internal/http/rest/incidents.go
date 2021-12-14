@@ -57,7 +57,7 @@ func (s *Server) CreateIncident() func(w http.ResponseWriter, r *http.Request, _
 			return
 		}
 
-		s.presenters.incident.RenderLocationHeader(w, listIncidentsRoute, newID)
+		s.presenters.incident.RenderCreatedHeader(w, listIncidentsRoute, newID)
 	}
 }
 
@@ -106,7 +106,7 @@ func (s *Server) UpdateIncident() func(w http.ResponseWriter, r *http.Request, _
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
-		s.presenters.incident.RenderLocationHeader(w, listIncidentsRoute, newID)
+		s.presenters.incident.RenderNoContentHeader(w, listIncidentsRoute, newID)
 	}
 }
 
