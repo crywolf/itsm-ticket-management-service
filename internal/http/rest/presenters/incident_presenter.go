@@ -23,6 +23,7 @@ type incidentPresenter struct {
 }
 
 func (p incidentPresenter) RenderIncident(w http.ResponseWriter, inc incident.Incident, hypermediaMapper hypermedia.Mapper) {
+	// TODO improve this embedded mapper programming interface - make it an object
 	embeddedCreatedBy := api.NewEmbeddedBasicUser(inc.CreatedUpdated.CreatedBy())
 	mapping := *hypermedia.EmbeddedResourcesMappingDefinition[embedded.CreatedBy].AddResource(embeddedCreatedBy)
 	//umapping := *hypermedia.EmbeddedResourcesMappingDefinition[embedded.UpdatedBy].AddResource(embeddedCreatedBy)
@@ -43,7 +44,7 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 	var apiList []api.IncidentResponse
 
 	for _, inc := range incidentList.Result {
-		//embeddedCreatedBy := api.NewEmbeddedBasicUser(*inc.CreatedUpdated.CreatedBy())
+		//embeddedCreatedBy := api.NewEmbeddedBasicUser(inc.CreatedUpdated.CreatedBy())
 		//mapping := *hypermedia.EmbeddedResourcesMappingDefinition[embedded.CreatedBy].AddResource(embeddedCreatedBy)
 		var embeddedMappings []hypermedia.EmbeddedResourceMapping
 		//embeddedMappings = append(embeddedMappings, mapping)
@@ -56,32 +57,22 @@ func (p incidentPresenter) RenderIncidentList(w http.ResponseWriter, incidentLis
 		apiList = append(apiList, incResp)
 	}
 
-	pagination := api.Pagination{
+	pageInfo := api.PageInfo{
 		Total: incidentList.Total,
 		Size:  incidentList.Size,
 		Page:  incidentList.Page,
 	}
 
 	resp := api.IncidentListResponse{
-		Result:     apiList,
-		Pagination: pagination,
-		Links:      p.hypermediaListLinks(hypermediaMapper, incidentList.Pagination),
+		Result:   apiList,
+		PageInfo: pageInfo,
+		Links:    p.hypermediaListLinks(hypermediaMapper, incidentList.Pagination),
 	}
 
 	p.renderJSON(w, resp)
 }
 
 func (p incidentPresenter) convertIncidentToAPI(inc incident.Incident) api.Incident {
-	createdInfo := api.CreatedInfo{
-		CreatedAt: inc.CreatedUpdated.CreatedAt().String(),
-		CreatedBy: inc.CreatedUpdated.CreatedByID().String(),
-	}
-
-	updatedInfo := api.UpdatedInfo{
-		UpdatedAt: inc.CreatedUpdated.UpdatedAt().String(),
-		UpdatedBy: inc.CreatedUpdated.UpdatedByID().String(),
-	}
-
 	var timelogUUIDs []api.UUID
 	for _, timelog := range inc.Timelogs {
 		timelogUUIDs = append(timelogUUIDs, api.UUID(timelog))
@@ -95,10 +86,8 @@ func (p incidentPresenter) convertIncidentToAPI(inc incident.Incident) api.Incid
 		Description:      inc.Description,
 		State:            inc.State(),
 		Timelogs:         timelogUUIDs,
-		CreatedUpdated: api.CreatedUpdated{
-			CreatedInfo: createdInfo,
-			UpdatedInfo: updatedInfo,
-		},
+		CreatedUpdated:   api.NewCreatedUpdatedInfo(inc.CreatedUpdated),
 	}
+
 	return apiInc
 }

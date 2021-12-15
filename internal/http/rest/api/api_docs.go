@@ -55,8 +55,8 @@ type ActionLink struct {
 	Href string
 }
 
-// Pagination represents information about pagination data
-type Pagination struct {
+// PageInfo represents information about data set in the list
+type PageInfo struct {
 	// Total number of elements in the list
 	// required: true
 	Total int `json:"total"`
@@ -69,6 +69,7 @@ type Pagination struct {
 }
 
 // HypermediaLinks contain links to other API calls
+// example: {"self": {"href": "example.com"}}
 type HypermediaLinks map[string]interface{}
 
 // AppendSelfLink adds resource's 'self' link

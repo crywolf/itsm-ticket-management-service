@@ -134,7 +134,9 @@ definitions:
   HypermediaLinks:
     additionalProperties:
       type: object
-    description: HypermediaLinks contain links to other API calls
+    description: |-
+      HypermediaLinks contain links to other API calls
+      example: {"self": {"href": "example.com"}}
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   HypermediaListLinks:

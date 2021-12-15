@@ -89,10 +89,9 @@ type incidentResponseWrapper struct {
 
 // IncidentListResponse ...
 type IncidentListResponse struct {
-	Pagination
-	Result []IncidentResponse `json:"_embedded,omitempty"`
-	// example: {self:{href:example.com}}
-	Links HypermediaListLinks `json:"_links,omitempty"`
+	PageInfo
+	Result []IncidentResponse  `json:"_embedded,omitempty"`
+	Links  HypermediaListLinks `json:"_links,omitempty"`
 }
 
 // A list of incidents
