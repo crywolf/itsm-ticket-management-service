@@ -1,6 +1,9 @@
 package api
 
-import "github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+import (
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+)
 
 // EmbeddedResources contain information about embedded objects
 type EmbeddedResources map[string]interface{}
@@ -31,4 +34,34 @@ type EmbeddedBasicUser struct {
 // UUID returns UUID of the BasicUser
 func (e EmbeddedBasicUser) UUID() string {
 	return e.BasicUser.UUID
+}
+
+// NewEmbeddedFieldEngineer creates new initialized EmbeddedFieldEngineer
+func NewEmbeddedFieldEngineer(user fieldengineer.FieldEngineer) *EmbeddedFieldEngineer {
+	basicUser := BasicUser{
+		UUID:             user.UUID().String(),
+		ExternalUserUUID: user.BasicUser.ExternalUserUUID,
+		Name:             user.BasicUser.Name,
+		Surname:          user.BasicUser.Surname,
+		OrgDisplayName:   user.BasicUser.OrgDisplayName,
+		OrgName:          user.BasicUser.OrgName,
+	}
+
+	return &EmbeddedFieldEngineer{
+		FieldEngineerID:       user.UUID().String(),
+		BasicUser:             basicUser,
+		EmbeddedResourceLinks: &HypermediaLinks{},
+	}
+}
+
+// EmbeddedFieldEngineer wraps FieldEngineer with hypermedia links
+type EmbeddedFieldEngineer struct {
+	BasicUser
+	FieldEngineerID       string `json:"uuid"`
+	EmbeddedResourceLinks `json:"_links"`
+}
+
+// UUID returns UUID of the FieldEngineer
+func (e EmbeddedFieldEngineer) UUID() string {
+	return e.FieldEngineerID
 }

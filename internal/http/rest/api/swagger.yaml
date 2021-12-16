@@ -63,6 +63,10 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      field_engineer:
+        format: uuid
+        type: string
+        x-go-name: FieldEngineerID
       number:
         description: Unique identifier
         type: string
@@ -131,6 +135,20 @@ definitions:
   ExternalUserUUID:
     $ref: '#/definitions/UUID'
     description: ExternalUserUUID represents UUID of a user (in external service)
+  FieldEngineer:
+    description: FieldEngineer API object
+    properties:
+      basic_user:
+        $ref: '#/definitions/BasicUser'
+      uuid:
+        format: uuid
+        type: string
+        x-go-name: UUID
+    required:
+    - uuid
+    - basic_user
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   HypermediaLinks:
     additionalProperties:
       type: object
@@ -179,6 +197,10 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      field_engineer:
+        format: uuid
+        type: string
+        x-go-name: FieldEngineer
       number:
         description: Unique identifier provided by user creating the incident
         type: string
@@ -197,7 +219,6 @@ definitions:
         items:
           format: uuid
           type: string
-        readOnly: true
         type: array
         x-go-name: Timelogs
       updated_at:
@@ -246,6 +267,10 @@ definitions:
         description: ID in external system
         type: string
         x-go-name: ExternalID
+      field_engineer:
+        format: uuid
+        type: string
+        x-go-name: FieldEngineer
       number:
         description: Unique identifier provided by user creating the incident
         type: string
@@ -264,7 +289,6 @@ definitions:
         items:
           format: uuid
           type: string
-        readOnly: true
         type: array
         x-go-name: Timelogs
       updated_at:
@@ -360,6 +384,10 @@ definitions:
       description:
         type: string
         x-go-name: Description
+      field_engineer:
+        format: uuid
+        type: string
+        x-go-name: FieldEngineerID
       short_description:
         type: string
         x-go-name: ShortDescription
@@ -660,6 +688,10 @@ responses:
           description: ID in external system
           type: string
           x-go-name: ExternalID
+        field_engineer:
+          format: uuid
+          type: string
+          x-go-name: FieldEngineer
         number:
           description: Unique identifier provided by user creating the incident
           type: string
@@ -678,7 +710,6 @@ responses:
           items:
             format: uuid
             type: string
-          readOnly: true
           type: array
           x-go-name: Timelogs
         updated_at:

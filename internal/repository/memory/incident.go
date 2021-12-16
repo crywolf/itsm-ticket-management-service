@@ -12,6 +12,8 @@ type Incident struct {
 
 	Description string
 
+	FieldEngineerID string
+
 	State string
 
 	Timelogs []string

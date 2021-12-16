@@ -78,13 +78,15 @@ func (e *Incident) canStartWorking(actor actor.Actor) error {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not field engineer, only assigned field engineer can start working")
 	}
 
-	if e.fieldEngineer == nil {
+	if e.FieldEngineerID == nil {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "ticket does not have any field engineer assigned")
 	}
 
-	if actor.IsFieldEngineer() && e.fieldEngineer != nil && actor.FieldEngineer().UUID() != e.fieldEngineer.UUID() {
+	if actor.IsFieldEngineer() && e.FieldEngineerID != nil && actor.FieldEngineer().UUID() != *e.FieldEngineerID {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not an assigned field engineer, only assigned field engineer can start working")
 	}
+
+	// TODO disallow if FE did not accepted the incident
 
 	if e.HasOpenTimelog() {
 		return domain.NewErrorf(domain.ErrorCodeInvalidArgument, "ticket already has an open timelog")

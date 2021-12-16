@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"io"
-	"log"
 	"time"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
@@ -25,19 +24,21 @@ type Clock interface {
 
 // IncidentRepositoryMemory keeps data in memory
 type IncidentRepositoryMemory struct {
-	basicUserRepository *BasicUserRepositoryMemory
-	Rand                io.Reader
-	clock               Clock
-	incidents           []Incident
-	timelogs            map[string]Timelog
+	basicUserRepository     repository.BasicUserRepository
+	fieldEngineerRepository repository.FieldEngineerRepository
+	Rand                    io.Reader
+	clock                   Clock
+	incidents               []Incident
+	timelogs                map[string]Timelog
 }
 
 // NewIncidentRepositoryMemory returns new initialized repository
-func NewIncidentRepositoryMemory(clock Clock, basicUserRepo *BasicUserRepositoryMemory) *IncidentRepositoryMemory {
+func NewIncidentRepositoryMemory(clock Clock, basicUserRepo repository.BasicUserRepository, fieldEngineerRepository repository.FieldEngineerRepository) *IncidentRepositoryMemory {
 	return &IncidentRepositoryMemory{
-		basicUserRepository: basicUserRepo,
-		clock:               clock,
-		timelogs:            make(map[string]Timelog),
+		basicUserRepository:     basicUserRepo,
+		fieldEngineerRepository: fieldEngineerRepository,
+		clock:                   clock,
+		timelogs:                make(map[string]Timelog),
 	}
 }
 
@@ -47,7 +48,12 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 
 	incidentID, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
-		log.Fatal(err)
+		return ref.UUID(""), err
+	}
+
+	feUUID := ""
+	if inc.FieldEngineerID != nil {
+		feUUID = inc.FieldEngineerID.String()
 	}
 
 	storedInc := Incident{
@@ -56,6 +62,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 		ExternalID:       inc.ExternalID,
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
+		FieldEngineerID:  feUUID,
 		State:            incident.StateNew.String(),
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        now,
@@ -81,7 +88,7 @@ func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.Chann
 		if timelogID.IsZero() { // newly opened => set new UUID
 			timelogID, err = repository.GenerateUUID(r.Rand)
 			if err != nil {
-				log.Fatal(err)
+				return ref.UUID(""), err
 			}
 
 			createdAt = now
@@ -109,12 +116,18 @@ func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.Chann
 		timelogUUIDs = append(timelogUUIDs, timelogID.String())
 	}
 
+	feUUID := ""
+	if inc.FieldEngineerID != nil {
+		feUUID = inc.FieldEngineerID.String()
+	}
+
 	storedInc := Incident{
 		ID:               inc.UUID().String(),
 		Number:           inc.Number,
 		ExternalID:       inc.ExternalID,
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
+		FieldEngineerID:  feUUID,
 		State:            incident.StateNew.String(),
 		Timelogs:         timelogUUIDs,
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
@@ -199,6 +212,11 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 	inc.ExternalID = storedInc.ExternalID
 	inc.ShortDescription = storedInc.ShortDescription
 	inc.Description = storedInc.Description
+
+	if storedInc.FieldEngineerID != "" {
+		feUUID := ref.UUID(storedInc.FieldEngineerID)
+		inc.FieldEngineerID = &feUUID
+	}
 
 	// load and set open timelog if any
 	var timelogUUIDs []ref.UUID

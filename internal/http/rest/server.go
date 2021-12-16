@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -24,6 +25,7 @@ type Server struct {
 	//authService             auth.Service
 	externalUserService     externalusersvc.Service
 	incidentService         incidentsvc.IncidentService
+	fieldEngineerService    fieldengineersvc.FieldEngineerService
 	inputPayloadConverters  jsonInputPayloadConverters
 	presenters              jsonPresenters
 	ExternalLocationAddress string
@@ -37,6 +39,7 @@ type Config struct {
 	//AuthService             auth.Service
 	ExternalUserService     externalusersvc.Service
 	IncidentService         incidentsvc.IncidentService
+	FieldEngineerService    fieldengineersvc.FieldEngineerService
 	ExternalLocationAddress string
 }
 
@@ -57,6 +60,7 @@ func NewServer(cfg Config) *Server {
 		//authService:             cfg.AuthService,
 		externalUserService:     cfg.ExternalUserService,
 		incidentService:         cfg.IncidentService,
+		fieldEngineerService:    cfg.FieldEngineerService,
 		ExternalLocationAddress: cfg.ExternalLocationAddress,
 	}
 	s.registerInputConverters()

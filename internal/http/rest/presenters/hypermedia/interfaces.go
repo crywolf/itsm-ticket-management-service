@@ -1,12 +1,21 @@
 package hypermedia
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
+	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
+
+type IncidentMapper interface {
+	Mapper
+	FieldEngineerSvc() fieldengineersvc.FieldEngineerService
+	Ctx() context.Context
+	ChannelID() ref.ChannelID
+}
 
 // Mapper maps domain object to hypermedia representation
 type Mapper interface {

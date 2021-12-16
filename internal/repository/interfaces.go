@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -15,6 +16,15 @@ type BasicUserRepository interface {
 
 	// GetBasicUserByExternalID returns the Basic User with the given external ID from the repository
 	GetBasicUserByExternalID(ctx context.Context, channelID ref.ChannelID, externalID ref.ExternalUserUUID) (user.BasicUser, error)
+}
+
+// FieldEngineerRepository provides access to the Filed Engineer repository
+type FieldEngineerRepository interface {
+	// AddFieldEngineer adds the given field engineer to the repository
+	AddFieldEngineer(ctx context.Context, channelID ref.ChannelID, fe fieldengineer.FieldEngineer) (ref.UUID, error)
+
+	// GetFieldEngineer returns the field engineer with the given ID from the repository
+	GetFieldEngineer(ctx context.Context, channelID ref.ChannelID, ID ref.UUID) (fieldengineer.FieldEngineer, error)
 }
 
 // IncidentRepository provides access to the incidents repository

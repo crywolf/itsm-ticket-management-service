@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -37,9 +38,10 @@ func Test_incidentService_CreateAndRetrieveIncidents(t *testing.T) {
 	actorUser := actor.Actor{BasicUser: basicUser}
 
 	clock := mocks.NewFixedClock()
-	repo := memory.NewIncidentRepositoryMemory(clock, basicUserRepository)
+	fieldEngineerRepository := memory.NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+	incidentRepository := memory.NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
 
-	svc := NewIncidentService(repo)
+	svc := NewIncidentService(incidentRepository, fieldEngineerRepository)
 
 	// CreateIncident
 	params1 := api.CreateIncidentParams{
@@ -100,17 +102,31 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	basicUserRepository := &memory.BasicUserRepositoryMemory{}
 	basicUserID, err := basicUserRepository.AddBasicUser(ctx, channelID, basicUser)
 	require.NoError(t, err)
-
 	err = basicUser.SetUUID(basicUserID)
 	require.NoError(t, err)
 
 	actorUser := actor.Actor{BasicUser: basicUser}
 
+	fieldEngineer := fieldengineer.FieldEngineer{
+		BasicUser: basicUser,
+	}
+	err = fieldEngineer.CreatedUpdated.SetCreatedBy(basicUser)
+	require.NoError(t, err)
+	err = fieldEngineer.CreatedUpdated.SetUpdatedBy(basicUser)
+	require.NoError(t, err)
+
 	clock := mocks.NewFixedClock()
-	repo := memory.NewIncidentRepositoryMemory(clock, basicUserRepository)
+	fieldEngineerRepository := memory.NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+	fieldEngineerID, err := fieldEngineerRepository.AddFieldEngineer(ctx, channelID, fieldEngineer)
+	require.NoError(t, err)
+	err = fieldEngineer.SetUUID(fieldEngineerID)
+	require.NoError(t, err)
 
-	svc := NewIncidentService(repo)
+	incidentRepository := memory.NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
 
+	svc := NewIncidentService(incidentRepository, fieldEngineerRepository)
+
+	feUUID := api.UUID(fieldEngineer.UUID().String())
 	// CreateIncident
 	params := api.CreateIncidentParams{
 		Number:           "ABC123",
@@ -128,8 +144,21 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	// add some time
 	clock.AddTime(100 * time.Second)
 
+	// trying update with non-existing field engineer
+	wrongFeUUID := api.UUID("3d334abe-f289-42a5-9742-72c3133768c2")
+	updateParamsNonExistingFE := api.UpdateIncidentParams{
+		ShortDescription: "Some updated short description",
+		FieldEngineerID:  &wrongFeUUID,
+	}
+	_, err = svc.UpdateIncident(ctx, channelID, actorUser, incID, updateParamsNonExistingFE)
+	// it should return error
+	require.Error(t, err)
+	assert.EqualError(t, err, "cannot assign field engineer: error loading field engineer from repository: record was not found")
+
+	// update with existing FE
 	updateParams := api.UpdateIncidentParams{
 		ShortDescription: "Some updated short description",
+		FieldEngineerID:  &feUUID,
 	}
 	updatedIncID, err := svc.UpdateIncident(ctx, channelID, actorUser, incID, updateParams)
 	require.NoError(t, err)
@@ -142,6 +171,9 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	assert.Equal(t, origInc.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, updateParams.ShortDescription, updatedInc.ShortDescription)
 	assert.Equal(t, "", updatedInc.Description)
+	assert.NotNil(t, updatedInc.FieldEngineerID)
+	assert.Equal(t, fieldEngineer.UUID(), *updatedInc.FieldEngineerID)
+
 	// timestamps
 	assert.Equal(t, origInc.CreatedUpdated.CreatedBy(), updatedInc.CreatedUpdated.CreatedBy())
 	assert.Equal(t, origInc.CreatedUpdated.CreatedAt(), updatedInc.CreatedUpdated.CreatedAt())

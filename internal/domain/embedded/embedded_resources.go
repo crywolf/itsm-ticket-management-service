@@ -9,6 +9,7 @@ func (a Resource) String() string {
 
 // Embedded resources values
 const (
-	CreatedBy Resource = "CreatedBy"
-	UpdatedBy Resource = "UpdatedBy"
+	FieldEngineer Resource = "FieldEngineer"
+	CreatedBy     Resource = "CreatedBy"
+	UpdatedBy     Resource = "UpdatedBy"
 )

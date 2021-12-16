@@ -33,7 +33,8 @@ func TestCreateIncidentHandler(t *testing.T) {
 			ExternalUserUUID: "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 		},
 	}
-	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	err := actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	require.NoError(t, err)
 
 	t.Parallel()
 
@@ -86,6 +87,7 @@ func TestCreateIncidentHandler(t *testing.T) {
 		})
 
 		payload := []byte(`{
+			"field_engineer": null,
 			"description": "incident with required fields missing"
 		}`)
 
@@ -160,7 +162,8 @@ func TestUpdateIncidentHandler(t *testing.T) {
 			ExternalUserUUID: "cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 		},
 	}
-	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	err := actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	require.NoError(t, err)
 
 	t.Parallel()
 
@@ -213,7 +216,8 @@ func TestUpdateIncidentHandler(t *testing.T) {
 		})
 
 		payload := []byte(`{
-			"description": "changing the description"
+			"description": "changing the description",
+			"field_engineer": ""
 		}`)
 
 		body := bytes.NewReader(payload)
@@ -234,7 +238,7 @@ func TestUpdateIncidentHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Status code")
 		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type header")
 
-		expectedJSON := `{"error":"'short_description' is a required field"}`
+		expectedJSON := `{"error":"'short_description' is a required field, 'field_engineer' must be a valid version 4 UUID"}`
 		assert.JSONEq(t, expectedJSON, string(b), "response does not match")
 	})
 
@@ -290,9 +294,22 @@ func TestGetIncidentHandler(t *testing.T) {
 			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 		},
 	}
-	_ = actorUser.BasicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
-	fieldEngineer := &fieldengineer.FieldEngineer{}
-	_ = fieldEngineer.SetUUID("123456789")
+	err := actorUser.BasicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+	require.NoError(t, err)
+
+	fieldEngineer := &fieldengineer.FieldEngineer{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "5d5ef779-17cb-413a-aa4b-7bc0a80bf230",
+			Name:             "Alois",
+			Surname:          "Vomacka",
+			OrgDisplayName:   "CGI",
+			OrgName:          "1233ae78-cb08-4fd3-9d59-b3b8b07e08fc.kompitech.com",
+		},
+	}
+	err = fieldEngineer.SetUUID("1adb8393-cff0-489c-a82f-3fe5d15708d4")
+	require.NoError(t, err)
+	fieldEngineerUUID := fieldEngineer.UUID()
+
 	actorUser.SetFieldEngineer(fieldEngineer)
 
 	t.Parallel()
@@ -374,7 +391,7 @@ func TestGetIncidentHandler(t *testing.T) {
 			ShortDescription: "Test incident 1",
 		}
 
-		retInc.SetFieldEngineer(fieldEngineer)
+		retInc.FieldEngineerID = &fieldEngineerUUID
 		err := retInc.SetUUID(ref.UUID(uuid))
 		require.NoError(t, err)
 		state, err := incident.NewStateFromString("new")
@@ -394,11 +411,16 @@ func TestGetIncidentHandler(t *testing.T) {
 		incidentSvc.On("GetIncident", ref.UUID(uuid), ref.ChannelID(channelID), actorUser).
 			Return(retInc, nil)
 
+		feSvc := new(mocks.FieldEngineerServiceMock)
+		feSvc.On("GetFieldEngineer", fieldEngineerUUID, ref.ChannelID(channelID), actorUser).
+			Return(*fieldEngineer, nil)
+
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalUserService:     us,
 			IncidentService:         incidentSvc,
+			FieldEngineerService:    feSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
 
@@ -424,12 +446,24 @@ func TestGetIncidentHandler(t *testing.T) {
 			"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 			"number": "A123456",
 			"short_description":"Test incident 1",
+			"field_engineer":"1adb8393-cff0-489c-a82f-3fe5d15708d4",
 			"state":"new",
 			"created_by":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 			"created_at":"2021-04-01T12:34:56+02:00",
 			"updated_by":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 			"updated_at":"2021-04-01T12:34:56+02:00",
 			"_embedded":{
+				"field_engineer":{
+					"_links": {
+						"self": {"href": "http://service.url/field_engineers/1adb8393-cff0-489c-a82f-3fe5d15708d4"}
+					},
+				    "external_user_uuid": "5d5ef779-17cb-413a-aa4b-7bc0a80bf230",
+					"name":"Alois",
+					"surname":"Vomacka",
+					"org_name":"1233ae78-cb08-4fd3-9d59-b3b8b07e08fc.kompitech.com",
+					"org_display_name":"CGI",
+					"uuid":"1adb8393-cff0-489c-a82f-3fe5d15708d4"
+				},
 				"created_by":{
 					"_links": {
 						"self": {"href": "http://service.url/basic_users/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"}
@@ -468,9 +502,22 @@ func TestListIncidentsHandler(t *testing.T) {
 			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 		},
 	}
-	_ = actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
-	fieldEngineer := &fieldengineer.FieldEngineer{}
-	_ = fieldEngineer.SetUUID("123456789")
+	err := actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	require.NoError(t, err)
+
+	fieldEngineer := &fieldengineer.FieldEngineer{
+		BasicUser: user.BasicUser{
+			ExternalUserUUID: "5d5ef779-17cb-413a-aa4b-7bc0a80bf230",
+			Name:             "Alois",
+			Surname:          "Vomacka",
+			OrgDisplayName:   "CGI",
+			OrgName:          "1233ae78-cb08-4fd3-9d59-b3b8b07e08fc.kompitech.com",
+		},
+	}
+	err = fieldEngineer.SetUUID("1adb8393-cff0-489c-a82f-3fe5d15708d4")
+	require.NoError(t, err)
+	fieldEngineerUUID := fieldEngineer.UUID()
+
 	actorUser.SetFieldEngineer(fieldEngineer)
 
 	t.Parallel()
@@ -543,6 +590,7 @@ func TestListIncidentsHandler(t *testing.T) {
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 					"number": "Accc265871",
 					"short_description":"Test incident 1",
+					"field_engineer":null,
 					"state":"new",
 					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"created_at":"2021-04-01T12:34:56+02:00",
@@ -550,19 +598,32 @@ func TestListIncidentsHandler(t *testing.T) {
 					"updated_at":"2021-04-01T12:34:56+02:00",
 					"_links":{
 						"self":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"},
-						"CancelIncident":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/cancel"},
-						"IncidentStartWorking":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/start_working"}
+						"CancelIncident":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/cancel"}
 					}
 				},
 				{
 					"uuid": "0ac5ebce-17e7-4edc-9552-fefe16e127fb",
 					"number": "555555",
-					"short_description":"Test incident 2",
+					"short_description":"Test incident 2 - with field engineer assigned",
+					"field_engineer":"1adb8393-cff0-489c-a82f-3fe5d15708d4",
 					"state":"resolved",
 					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"created_at": "2021-04-11T00:45:42+02:00",
 					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"updated_at":"2021-04-02T09:10:32+02:00",
+					"_embedded":{
+						"field_engineer":{
+							"_links": {
+								"self": {"href": "http://service.url/field_engineers/1adb8393-cff0-489c-a82f-3fe5d15708d4"}
+							},
+							"external_user_uuid": "5d5ef779-17cb-413a-aa4b-7bc0a80bf230",
+							"name":"Alois",
+							"surname":"Vomacka",
+							"org_name":"1233ae78-cb08-4fd3-9d59-b3b8b07e08fc.kompitech.com",
+							"org_display_name":"CGI",
+							"uuid":"1adb8393-cff0-489c-a82f-3fe5d15708d4"
+						}
+					},
 					"_links":{
 						"self":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb"},
 						"IncidentStartWorking":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb/start_working"}
@@ -586,7 +647,6 @@ func TestListIncidentsHandler(t *testing.T) {
 			Number:           "Accc265871",
 			ShortDescription: "Test incident 1",
 		}
-		fInc1.SetFieldEngineer(fieldEngineer)
 		err := fInc1.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
 		require.NoError(t, err)
 		state, err := incident.NewStateFromString("new")
@@ -601,9 +661,9 @@ func TestListIncidentsHandler(t *testing.T) {
 
 		fInc2 := incident.Incident{
 			Number:           "555555",
-			ShortDescription: "Test incident 2",
+			ShortDescription: "Test incident 2 - with field engineer assigned",
 		}
-		fInc2.SetFieldEngineer(fieldEngineer)
+		fInc2.FieldEngineerID = &fieldEngineerUUID
 		err = fInc2.SetUUID("0ac5ebce-17e7-4edc-9552-fefe16e127fb")
 		require.NoError(t, err)
 		state, err = incident.NewStateFromString("resolved")
@@ -633,11 +693,17 @@ func TestListIncidentsHandler(t *testing.T) {
 		}
 		incidentSvc.On("ListIncidents", ref.ChannelID(channelID), actorUser, mock.AnythingOfType("*converters.paginationParams")).Return(result, nil)
 
+		feSvc := new(mocks.FieldEngineerServiceMock)
+		feSvc.On("GetFieldEngineer", fieldEngineerUUID, ref.ChannelID(channelID), actorUser).
+			Return(*fieldEngineer, nil)
+		//			Return(fieldengineer.FieldEngineer{}, domain.WrapErrorf(memory.ErrNotFound, domain.ErrorCodeNotFound, "error loading field engineer from repository"))
+
 		server := NewServer(Config{
 			Addr:                    "service.url",
 			Logger:                  logger,
 			ExternalUserService:     us,
 			IncidentService:         incidentSvc,
+			FieldEngineerService:    feSvc,
 			ExternalLocationAddress: "http://service.url",
 		})
 

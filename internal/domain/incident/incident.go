@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
-	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
@@ -24,7 +23,7 @@ type Incident struct {
 
 	Description string
 
-	fieldEngineer *fieldengineer.FieldEngineer
+	FieldEngineerID *ref.UUID
 
 	state State
 
@@ -62,18 +61,6 @@ func (e *Incident) SetState(s State) error {
 	return nil
 }
 
-// FieldEngineer returns pointer to field engineer if the field engineer is set or nil if not
-func (e Incident) FieldEngineer() *fieldengineer.FieldEngineer {
-	return e.fieldEngineer
-}
-
-// SetFieldEngineer sets field engineer
-func (e *Incident) SetFieldEngineer(fieldEngineer *fieldengineer.FieldEngineer) {
-	if e.fieldEngineer == nil {
-		e.fieldEngineer = fieldEngineer
-	}
-}
-
 // OpenTimelog returns open timelog if any or nil pointer
 func (e Incident) OpenTimelog() *timelog.Timelog {
 	return e.openTimelog
@@ -93,7 +80,8 @@ func (e Incident) HasOpenTimelog() bool {
 func (e Incident) EmbeddedResources(actor actor.Actor) []embedded.Resource {
 	var resources []embedded.Resource
 
-	resources = append(resources, e.CreatedUpdated.EmbeddedResources(actor)...)
+	resources = append(resources, embedded.FieldEngineer)
+	resources = append(resources, e.CreatedUpdated.EmbeddedResources()...)
 
 	// TODO add other fields...
 	if actor.IsFieldEngineer() {

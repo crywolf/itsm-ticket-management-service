@@ -1,6 +1,8 @@
 package api
 
-import "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+import (
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+)
 
 // Incident API object
 // swagger:model
@@ -21,13 +23,14 @@ type Incident struct {
 
 	Description string `json:"description,omitempty"`
 
+	FieldEngineer *UUID `json:"field_engineer"`
+
 	// State of the ticket
 	// required: true
 	// example: new
 	State incident.State `json:"state"`
 
 	// List of timelogs
-	// read only: true
 	Timelogs []UUID `json:"timelogs,omitempty"`
 
 	CreatedUpdated
@@ -47,6 +50,8 @@ type CreateIncidentParams struct {
 	ShortDescription string `json:"short_description" validate:"required"`
 
 	Description string `json:"description"`
+
+	FieldEngineerID *UUID `json:"field_engineer" validate:"omitempty,uuid4"`
 }
 
 // swagger:parameters CreateIncident
@@ -62,6 +67,8 @@ type UpdateIncidentParams struct {
 	ShortDescription string `json:"short_description" validate:"required"`
 
 	Description string `json:"description"`
+
+	FieldEngineerID *UUID `json:"field_engineer" validate:"omitempty,uuid4"`
 }
 
 // swagger:parameters UpdateIncident

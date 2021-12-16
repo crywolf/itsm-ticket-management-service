@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
@@ -28,7 +29,9 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser},
 	}
-	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
+	fieldEngineerRepository := NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 	ctx := context.Background()
@@ -55,6 +58,7 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 	assert.Equal(t, inc1.ExternalID, retInc.ExternalID)
 	assert.Equal(t, inc1.ShortDescription, retInc.ShortDescription)
 	assert.Equal(t, inc1.Description, retInc.Description)
+	assert.Empty(t, retInc.FieldEngineerID)
 	assert.Empty(t, retInc.Timelogs)
 
 	// test correct timestamps
@@ -91,8 +95,34 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser, basicUser2},
 	}
+
+	fieldEngineerUUID := ref.UUID("1adb8393-cff0-489c-a82f-3fe5d15708d4")
+	fieldEngineer := fieldengineer.FieldEngineer{
+		BasicUser: basicUser,
+	}
+	err = fieldEngineer.SetUUID(fieldEngineerUUID)
+	require.NoError(t, err)
+
+	err = fieldEngineer.CreatedUpdated.SetCreatedBy(basicUser)
+	require.NoError(t, err)
+
+	err = fieldEngineer.CreatedUpdated.SetUpdatedBy(basicUser)
+	require.NoError(t, err)
+
+	storedFieldEngineer := FieldEngineer{
+		ID:          fieldEngineerUUID.String(),
+		BasicUserID: basicUser.UUID().String(),
+		CreatedBy:   basicUser.UUID().String(),
+		UpdatedBy:   basicUser.UUID().String(),
+	}
+
+	fieldEngineerRepository := &FieldEngineerRepositoryMemory{
+		basicUserRepository: basicUserRepository,
+		fieldEngineers:      []FieldEngineer{storedFieldEngineer},
+	}
+
 	clock := mocks.NewFixedClock()
-	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 	ctx := context.Background()
@@ -116,6 +146,7 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 
 	changedDescription := "some changed description"
 	retInc.Description = changedDescription
+	retInc.FieldEngineerID = &fieldEngineerUUID
 	err = retInc.SetState(incident.StateInProgress)
 	require.NoError(t, err)
 
@@ -142,6 +173,7 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 	assert.Equal(t, inc1.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, inc1.ShortDescription, updatedInc.ShortDescription)
 	assert.Equal(t, changedDescription, updatedInc.Description)
+	assert.Equal(t, fieldEngineer.UUID(), *updatedInc.FieldEngineerID)
 	assert.Len(t, updatedInc.Timelogs, 1, "timelogs count")
 
 	assert.Equal(t, retInc.OpenTimelog(), updatedInc.OpenTimelog())
@@ -171,7 +203,9 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 	basicUserRepository := &BasicUserRepositoryMemory{
 		users: []user.BasicUser{basicUser, basicUser2},
 	}
-	repo := NewIncidentRepositoryMemory(clock, basicUserRepository)
+	fieldEngineerRepository := NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+
+	repo := NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
 
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 

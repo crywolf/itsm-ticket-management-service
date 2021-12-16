@@ -6,7 +6,6 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // CreatedUpdated contains timestamps and reference to user who created/updated the resource
@@ -82,7 +81,7 @@ func (o *CreatedUpdated) SetUpdatedBy(basicUser user.BasicUser) error {
 }
 
 // EmbeddedResources should be called from the same func in the resource that includes CreatedUpdated object
-func (o CreatedUpdated) EmbeddedResources(_ actor.Actor) []embedded.Resource {
+func (o CreatedUpdated) EmbeddedResources() []embedded.Resource {
 	resources := []embedded.Resource{
 		embedded.CreatedBy,
 		embedded.UpdatedBy,

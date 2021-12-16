@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
+	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -42,21 +45,51 @@ func main() {
 
 	basicUserRepository := &memory.BasicUserRepositoryMemory{}
 	// add test user - just for playing and testing
-	_, err := basicUserRepository.AddBasicUser(context.Background(), "", user.BasicUser{
+	basicUser := user.BasicUser{
 		ExternalUserUUID: "83b231f2-5898-2658-70f4-5db03d1ccbc1",
 		Name:             "Jan",
 		Surname:          "Novák",
 		OrgDisplayName:   "KompiTech",
 		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
-	})
-
+	}
+	basicUserUUID, err := basicUserRepository.AddBasicUser(context.Background(), "", basicUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = basicUser.SetUUID(basicUserUUID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	incidentRepository := memory.NewIncidentRepositoryMemory(realClock{}, basicUserRepository)
+	clock := realClock{}
+	fieldEngineerRepository := memory.NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+	fieldEngineer := fieldengineer.FieldEngineer{
+		BasicUser: basicUser,
+	}
+	err = fieldEngineer.CreatedUpdated.SetCreatedBy(basicUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = fieldEngineer.CreatedUpdated.SetUpdatedBy(basicUser)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	incidentService := incidentsvc.NewIncidentService(incidentRepository)
+	fieldEngID, err := fieldEngineerRepository.AddFieldEngineer(context.Background(), "", fieldEngineer)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = fieldEngineer.SetUUID(fieldEngID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("\n===> field eng UUID:", fieldEngID)
+
+	fieldEngineerService := fieldengineersvc.NewFieldEngineerService(fieldEngineerRepository)
+
+	incidentRepository := memory.NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
+	incidentService := incidentsvc.NewIncidentService(incidentRepository, fieldEngineerRepository)
 
 	// External user service fetches user data from external service
 	externalUserService, err := externalusersvc.NewService(basicUserRepository)
@@ -71,6 +104,7 @@ func main() {
 		Logger:                  logger,
 		ExternalUserService:     externalUserService,
 		IncidentService:         incidentService,
+		FieldEngineerService:    fieldEngineerService,
 		ExternalLocationAddress: viper.GetString("ExternalLocationAddress"),
 	})
 

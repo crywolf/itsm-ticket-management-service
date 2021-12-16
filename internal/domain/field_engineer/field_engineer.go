@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 )
 
@@ -12,6 +13,8 @@ type FieldEngineer struct {
 	uuid ref.UUID
 
 	BasicUser user.BasicUser
+
+	CreatedUpdated types.CreatedUpdated
 }
 
 // UUID getter

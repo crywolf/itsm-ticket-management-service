@@ -10,6 +10,11 @@ import (
 
 // EmbeddedResourcesMappingDefinition maps domain resource names to its hypermedia (embedded) versions
 var EmbeddedResourcesMappingDefinition = map[embedded.Resource]*EmbeddedResourceMapping{
+	embedded.FieldEngineer: {
+		ResourceName: embedded.FieldEngineer,
+		Key:          "field_engineer",
+		Route:        "/field_engineers/{uuid}",
+	},
 	embedded.CreatedBy: {
 		ResourceName: embedded.CreatedBy,
 		Key:          "created_by",

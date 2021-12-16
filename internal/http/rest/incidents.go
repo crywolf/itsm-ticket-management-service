@@ -1,9 +1,11 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
+	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -150,7 +152,7 @@ func (s *Server) GetIncident() func(w http.ResponseWriter, r *http.Request, _ ht
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL, actorUser)
+		hypermediaMapper := NewIncidentHypermediaMapper(r.Context(), channelID, s.ExternalLocationAddress, r.URL, actorUser, s.fieldEngineerService)
 		s.presenters.incident.RenderIncident(w, inc, hypermediaMapper)
 	}
 }
@@ -192,21 +194,42 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		hypermediaMapper := NewIncidentHypermediaMapper(s.ExternalLocationAddress, r.URL, actorUser)
+		hypermediaMapper := NewIncidentHypermediaMapper(r.Context(), channelID, s.ExternalLocationAddress, r.URL, actorUser, s.fieldEngineerService)
 		s.presenters.incident.RenderIncidentList(w, list, hypermediaMapper)
 	}
 }
 
 // IncidentHypermediaMapper implements hypermedia mapping functionality for incident resource
 type IncidentHypermediaMapper struct {
+	ctx       context.Context
+	channelID ref.ChannelID
+	feSvc     fieldengineersvc.FieldEngineerService
 	*hypermedia.BaseHypermediaMapper
 }
 
 // NewIncidentHypermediaMapper returns new hypermedia mapper for incident resource
-func NewIncidentHypermediaMapper(serverAddr string, currentURL *url.URL, actor actor.Actor) IncidentHypermediaMapper {
+func NewIncidentHypermediaMapper(ctx context.Context, channelID ref.ChannelID, serverAddr string, currentURL *url.URL, actor actor.Actor, feSvc fieldengineersvc.FieldEngineerService) IncidentHypermediaMapper {
 	return IncidentHypermediaMapper{
+		ctx:                  ctx,
+		channelID:            channelID,
+		feSvc:                feSvc,
 		BaseHypermediaMapper: hypermedia.NewBaseHypermedia(serverAddr, currentURL, actor),
 	}
+}
+
+// Ctx ...
+func (h IncidentHypermediaMapper) Ctx() context.Context {
+	return h.ctx
+}
+
+// ChannelID ...
+func (h IncidentHypermediaMapper) ChannelID() ref.ChannelID {
+	return h.channelID
+}
+
+// FieldEngineerSvc ...
+func (h IncidentHypermediaMapper) FieldEngineerSvc() fieldengineersvc.FieldEngineerService {
+	return h.feSvc
 }
 
 // RoutesToHypermediaActionLinks maps domain object actions to hypermedia action links
@@ -219,7 +242,7 @@ func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.Act
 	return links
 }
 
-// TODO this route will be in
+// TODO this route will be in used in hypermedia
 const getBasicUserRoute = "/basic_user/{uuid}"
 
 // TODO implement routes - they are just for testing at the moment
