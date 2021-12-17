@@ -39,6 +39,10 @@ func (e *Incident) Cancel(actor actor.Actor) error {
 		return err
 	}
 
+	if err := e.SetState(StateCancelled); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -56,10 +60,6 @@ func (e *Incident) StartWorking(actor actor.Actor, remote bool) error {
 		return err
 	}
 
-	if err := e.SetState(StateInProgress); err != nil {
-		return err
-	}
-
 	// open new timelog
 	newTimelog := &timelog.Timelog{
 		Remote: remote,
@@ -69,6 +69,10 @@ func (e *Incident) StartWorking(actor actor.Actor, remote bool) error {
 	}
 
 	e.openTimelog = newTimelog
+
+	if err := e.SetState(StateInProgress); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -83,13 +87,13 @@ func (e *Incident) canStartWorking(actor actor.Actor) error {
 	}
 
 	if actor.IsFieldEngineer() && e.FieldEngineerID != nil && actor.FieldEngineer().UUID() != *e.FieldEngineerID {
-		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not an assigned field engineer, only assigned field engineer can start working")
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not assigned as field engineer, only assigned field engineer can start working")
 	}
 
 	// TODO disallow if FE did not accepted the incident
 
 	if e.HasOpenTimelog() {
-		return domain.NewErrorf(domain.ErrorCodeInvalidArgument, "ticket already has an open timelog")
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "ticket already has an open timelog")
 	}
 
 	return nil

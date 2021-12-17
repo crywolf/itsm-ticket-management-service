@@ -19,6 +19,9 @@ BUILD_DIR?=build
 test:
 	go test -v ./internal/...
 
+test-domain:
+	go test -v ./internal/domain/...
+
 test-all: test
 
 #e2e-test:
