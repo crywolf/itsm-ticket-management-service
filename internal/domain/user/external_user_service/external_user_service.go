@@ -71,7 +71,7 @@ func (s userService) ActorFromRequest(ctx context.Context, authToken string, cha
 
 	// TODO - try to find field engineer with this basicUser in repository and assign it
 	//fieldEngineer := &fieldengineer.FieldEngineer{}
-	//actorUser.SetFieldEngineer(fieldEngineer)
+	//actorUser.SetFieldEngineerID(fieldEngineer)
 
 	return actorUser, nil
 }

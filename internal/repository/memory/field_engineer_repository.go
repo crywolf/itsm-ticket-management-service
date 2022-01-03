@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"io"
-	"log"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
@@ -36,7 +35,7 @@ func (r *FieldEngineerRepositoryMemory) AddFieldEngineer(_ context.Context, _ re
 
 	feID, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
-		log.Fatal(err)
+		return ref.UUID(""), err
 	}
 
 	storedFE := FieldEngineer{

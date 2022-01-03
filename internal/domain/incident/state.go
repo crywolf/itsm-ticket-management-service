@@ -2,8 +2,7 @@ package incident
 
 import (
 	"encoding/json"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // State values
@@ -40,7 +39,7 @@ func NewStateFromString(stateStr string) (State, error) {
 			return state, nil
 		}
 	}
-	return State{}, errors.Errorf("unknown '%s' state", stateStr)
+	return State{}, fmt.Errorf("unknown '%s' state", stateStr)
 }
 
 // IsZero returns true if State has zero value.

@@ -60,7 +60,8 @@ var _ = Describe("Incident behavior", func() {
 
 		When("called by field engineer", func() {
 			BeforeEach(func() {
-				actorUser.SetFieldEngineer(&fieldEngineer)
+				feUUID := fieldEngineer.UUID()
+				actorUser.SetFieldEngineerID(&feUUID)
 			})
 
 			Context("but incident has no field engineer assigned", func() {

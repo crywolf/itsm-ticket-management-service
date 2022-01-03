@@ -285,16 +285,14 @@ func TestGetIncidentHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	actorUser := actor.Actor{
-		BasicUser: user.BasicUser{
-			ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
-			Name:             "Alfred",
-			Surname:          "Koletschko",
-			OrgDisplayName:   "KompiTech",
-			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
-		},
+	createdByUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 	}
-	err := actorUser.BasicUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
+	err := createdByUser.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
 	require.NoError(t, err)
 
 	fieldEngineer := &fieldengineer.FieldEngineer{
@@ -310,7 +308,10 @@ func TestGetIncidentHandler(t *testing.T) {
 	require.NoError(t, err)
 	fieldEngineerUUID := fieldEngineer.UUID()
 
-	actorUser.SetFieldEngineer(fieldEngineer)
+	actorUser := actor.Actor{
+		BasicUser: fieldEngineer.BasicUser,
+	}
+	actorUser.SetFieldEngineerID(&fieldEngineerUUID)
 
 	t.Parallel()
 
@@ -389,18 +390,17 @@ func TestGetIncidentHandler(t *testing.T) {
 		retInc := incident.Incident{
 			Number:           "A123456",
 			ShortDescription: "Test incident 1",
+			FieldEngineerID:  &fieldEngineerUUID,
 		}
-
-		retInc.FieldEngineerID = &fieldEngineerUUID
 		err := retInc.SetUUID(ref.UUID(uuid))
 		require.NoError(t, err)
 		state, err := incident.NewStateFromString("new")
 		require.NoError(t, err)
 		err = retInc.SetState(state)
 		require.NoError(t, err)
-		err = retInc.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
+		err = retInc.CreatedUpdated.SetCreated(createdByUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
-		err = retInc.CreatedUpdated.SetUpdated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
+		err = retInc.CreatedUpdated.SetUpdated(createdByUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 
 		us := new(mocks.ExternalUserServiceMock)
@@ -493,17 +493,27 @@ func TestListIncidentsHandler(t *testing.T) {
 	channelID := "e27ddcd0-0e1f-4bc5-93df-f6f04155beec"
 	bearerToken := "some valid Bearer token"
 
-	actorUser := actor.Actor{
-		BasicUser: user.BasicUser{
-			ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
-			Name:             "Alfred",
-			Surname:          "Koletschko",
-			OrgDisplayName:   "KompiTech",
-			OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
-		},
+	createdByUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
 	}
-	err := actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	err := createdByUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
 	require.NoError(t, err)
+
+	//actorUser := actor.Actor{
+	//	BasicUser: user.BasicUser{
+	//		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+	//		Name:             "Alfred",
+	//		Surname:          "Koletschko",
+	//		OrgDisplayName:   "KompiTech",
+	//		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	//	},
+	//}
+	//err := actorUser.BasicUser.SetUUID("8183eaca-56c0-41d9-9291-1d295dd53763")
+	//require.NoError(t, err)
 
 	fieldEngineer := &fieldengineer.FieldEngineer{
 		BasicUser: user.BasicUser{
@@ -518,7 +528,10 @@ func TestListIncidentsHandler(t *testing.T) {
 	require.NoError(t, err)
 	fieldEngineerUUID := fieldEngineer.UUID()
 
-	actorUser.SetFieldEngineer(fieldEngineer)
+	actorUser := actor.Actor{
+		BasicUser: fieldEngineer.BasicUser,
+	}
+	actorUser.SetFieldEngineerID(&fieldEngineerUUID)
 
 	t.Parallel()
 
@@ -653,24 +666,24 @@ func TestListIncidentsHandler(t *testing.T) {
 		require.NoError(t, err)
 		err = fInc1.SetState(state)
 		require.NoError(t, err)
-		err = fInc1.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
+		err = fInc1.CreatedUpdated.SetCreated(createdByUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
-		err = fInc1.CreatedUpdated.SetUpdated(actorUser.BasicUser, "2021-04-01T12:34:56+02:00")
+		err = fInc1.CreatedUpdated.SetUpdated(createdByUser, "2021-04-01T12:34:56+02:00")
 		require.NoError(t, err)
 		list = append(list, fInc1)
 
 		fInc2 := incident.Incident{
 			Number:           "555555",
 			ShortDescription: "Test incident 2 - with field engineer assigned",
+			FieldEngineerID:  &fieldEngineerUUID,
 		}
-		fInc2.FieldEngineerID = &fieldEngineerUUID
 		err = fInc2.SetUUID("0ac5ebce-17e7-4edc-9552-fefe16e127fb")
 		require.NoError(t, err)
 		state, err = incident.NewStateFromString("resolved")
 		require.NoError(t, err)
 		err = fInc2.SetState(state)
 		require.NoError(t, err)
-		err = fInc2.CreatedUpdated.SetCreated(actorUser.BasicUser, "2021-04-11T00:45:42+02:00")
+		err = fInc2.CreatedUpdated.SetCreated(createdByUser, "2021-04-11T00:45:42+02:00")
 		require.NoError(t, err)
 		err = fInc2.CreatedUpdated.SetUpdated(basicUser2, "2021-04-02T09:10:32+02:00")
 		require.NoError(t, err)
@@ -696,7 +709,6 @@ func TestListIncidentsHandler(t *testing.T) {
 		feSvc := new(mocks.FieldEngineerServiceMock)
 		feSvc.On("GetFieldEngineer", fieldEngineerUUID, ref.ChannelID(channelID), actorUser).
 			Return(*fieldEngineer, nil)
-		//			Return(fieldengineer.FieldEngineer{}, domain.WrapErrorf(memory.ErrNotFound, domain.ErrorCodeNotFound, "error loading field engineer from repository"))
 
 		server := NewServer(Config{
 			Addr:                    "service.url",

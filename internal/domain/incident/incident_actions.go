@@ -86,7 +86,7 @@ func (e *Incident) canStartWorking(actor actor.Actor) error {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "ticket does not have any field engineer assigned")
 	}
 
-	if actor.IsFieldEngineer() && e.FieldEngineerID != nil && actor.FieldEngineer().UUID() != *e.FieldEngineerID {
+	if actor.IsFieldEngineer() && e.FieldEngineerID != nil && *actor.FieldEngineerID() != *e.FieldEngineerID {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "user is not assigned as field engineer, only assigned field engineer can start working")
 	}
 

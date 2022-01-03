@@ -1,7 +1,7 @@
 package incident
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
@@ -43,7 +43,7 @@ func (e Incident) UUID() ref.UUID {
 // SetUUID returns error if UUID was already set
 func (e *Incident) SetUUID(v ref.UUID) error {
 	if !e.uuid.IsZero() {
-		return errors.New("incident: cannot set UUID, it was already set")
+		return fmt.Errorf("incident: cannot set UUID, it was already set (%s)", e.uuid)
 	}
 	e.uuid = v
 	return nil
@@ -66,12 +66,12 @@ func (e Incident) OpenTimelog() *timelog.Timelog {
 	return e.openTimelog
 }
 
-// SetOpenTimelog sets open timelog (do not use in the domain,method is used by repository)
+// SetOpenTimelog sets open timelog (do not use in the domain, method is used by repository)
 func (e *Incident) SetOpenTimelog(openTimelog *timelog.Timelog) {
 	e.openTimelog = openTimelog
 }
 
-// HasOpenTimelog returns true if the ticket has open timelog
+// HasOpenTimelog returns true if the ticket has an open timelog
 func (e Incident) HasOpenTimelog() bool {
 	return e.openTimelog != nil
 }

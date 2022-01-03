@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"io"
-	"log"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
@@ -21,7 +20,7 @@ type BasicUserRepositoryMemory struct {
 func (r *BasicUserRepositoryMemory) AddBasicUser(_ context.Context, _ ref.ChannelID, user user.BasicUser) (ref.UUID, error) {
 	id, err := repository.GenerateUUID(r.Rand)
 	if err != nil {
-		log.Fatal(err)
+		return ref.UUID(""), err
 	}
 
 	err = user.SetUUID(id)

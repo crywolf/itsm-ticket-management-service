@@ -1,7 +1,7 @@
 package timelog
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
@@ -21,16 +21,15 @@ type Timelog struct {
 }
 
 // UUID getter
-func (i Timelog) UUID() ref.UUID {
-	return i.uuid
+func (e Timelog) UUID() ref.UUID {
+	return e.uuid
 }
 
 // SetUUID returns error if UUID was already set
-func (i *Timelog) SetUUID(v ref.UUID) error {
-	if !i.uuid.IsZero() {
-		return errors.New("cannot set UUID, it was already set")
+func (e *Timelog) SetUUID(v ref.UUID) error {
+	if !e.uuid.IsZero() {
+		return fmt.Errorf("timelog: cannot set UUID, it was already set (%s)", e.uuid)
 	}
-	i.uuid = v
+	e.uuid = v
 	return nil
 }
-
