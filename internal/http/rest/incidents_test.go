@@ -603,27 +603,12 @@ func TestListIncidentsHandler(t *testing.T) {
 					"uuid":"cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0",
 					"number": "Accc265871",
 					"short_description":"Test incident 1",
-					"field_engineer":null,
+					"field_engineer":"1adb8393-cff0-489c-a82f-3fe5d15708d4",
 					"state":"new",
 					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"created_at":"2021-04-01T12:34:56+02:00",
 					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
 					"updated_at":"2021-04-01T12:34:56+02:00",
-					"_links":{
-						"self":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"},
-						"CancelIncident":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/cancel"}
-					}
-				},
-				{
-					"uuid": "0ac5ebce-17e7-4edc-9552-fefe16e127fb",
-					"number": "555555",
-					"short_description":"Test incident 2 - with field engineer assigned",
-					"field_engineer":"1adb8393-cff0-489c-a82f-3fe5d15708d4",
-					"state":"resolved",
-					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
-					"created_at": "2021-04-11T00:45:42+02:00",
-					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
-					"updated_at":"2021-04-02T09:10:32+02:00",
 					"_embedded":{
 						"field_engineer":{
 							"_links": {
@@ -638,8 +623,23 @@ func TestListIncidentsHandler(t *testing.T) {
 						}
 					},
 					"_links":{
-						"self":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb"},
-						"IncidentStartWorking":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb/start_working"}
+						"self":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0"},
+						"CancelIncident":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/cancel"},
+						"IncidentStartWorking":{"href":"http://service.url/incidents/cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0/start_working"}
+					}
+				},
+				{
+					"uuid": "0ac5ebce-17e7-4edc-9552-fefe16e127fb",
+					"number": "555555",
+					"short_description":"Test incident 2 - with field engineer assigned",
+					"field_engineer":null,
+					"state":"resolved",
+					"created_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
+					"created_at": "2021-04-11T00:45:42+02:00",
+					"updated_by":"8183eaca-56c0-41d9-9291-1d295dd53763",
+					"updated_at":"2021-04-02T09:10:32+02:00",
+					"_links":{
+						"self":{"href":"http://service.url/incidents/0ac5ebce-17e7-4edc-9552-fefe16e127fb"}
 					}
 				}],
 			"_links":{
@@ -659,6 +659,7 @@ func TestListIncidentsHandler(t *testing.T) {
 		fInc1 := incident.Incident{
 			Number:           "Accc265871",
 			ShortDescription: "Test incident 1",
+			FieldEngineerID:  &fieldEngineerUUID,
 		}
 		err := fInc1.SetUUID("cb2fe2a7-ab9f-4f6d-9fd6-c7c209403cf0")
 		require.NoError(t, err)
@@ -675,7 +676,6 @@ func TestListIncidentsHandler(t *testing.T) {
 		fInc2 := incident.Incident{
 			Number:           "555555",
 			ShortDescription: "Test incident 2 - with field engineer assigned",
-			FieldEngineerID:  &fieldEngineerUUID,
 		}
 		err = fInc2.SetUUID("0ac5ebce-17e7-4edc-9552-fefe16e127fb")
 		require.NoError(t, err)

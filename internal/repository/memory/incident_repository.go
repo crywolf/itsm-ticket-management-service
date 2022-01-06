@@ -218,7 +218,7 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 		inc.FieldEngineerID = &feUUID
 	}
 
-	// load and set open timelog if any
+	// set Timelogs (UUIDs)
 	var timelogUUIDs []ref.UUID
 	for _, timelogID := range storedInc.Timelogs {
 		timelogUUIDs = append(timelogUUIDs, ref.UUID(timelogID))
@@ -226,6 +226,7 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 
 	inc.Timelogs = timelogUUIDs
 
+	// load and set open timelog if any
 	for _, timelogID := range storedInc.Timelogs {
 		storedTimelog := r.timelogs[timelogID]
 

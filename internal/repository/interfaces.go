@@ -23,6 +23,9 @@ type FieldEngineerRepository interface {
 	// AddFieldEngineer adds the given field engineer to the repository
 	AddFieldEngineer(ctx context.Context, channelID ref.ChannelID, fe fieldengineer.FieldEngineer) (ref.UUID, error)
 
+	// UpdateFieldEngineer updates the given field engineer in the repository
+	UpdateFieldEngineer(ctx context.Context, channelID ref.ChannelID, fe fieldengineer.FieldEngineer) (ref.UUID, error)
+
 	// GetFieldEngineer returns the field engineer with the given ID from the repository
 	GetFieldEngineer(ctx context.Context, channelID ref.ChannelID, ID ref.UUID) (fieldengineer.FieldEngineer, error)
 }

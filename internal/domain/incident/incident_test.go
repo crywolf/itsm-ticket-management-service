@@ -1,9 +1,10 @@
-package incident
+package incident_test
 
 import (
 	"testing"
 
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
+	. "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -58,7 +59,7 @@ var _ = Describe("Incident behavior", func() {
 			})
 		})
 
-		When("called by field engineer", func() {
+		When("called by field engineer actor", func() {
 			BeforeEach(func() {
 				feUUID := fieldEngineer.UUID()
 				actorUser.SetFieldEngineerID(&feUUID)
@@ -104,8 +105,8 @@ var _ = Describe("Incident behavior", func() {
 							feUUID := fieldEngineer.UUID()
 							inc = Incident{
 								FieldEngineerID: &feUUID,
-								openTimelog:     &timelog.Timelog{},
 							}
+							inc.SetOpenTimelog(&timelog.Timelog{})
 						})
 
 						It("should return error", func() {
@@ -123,9 +124,12 @@ var _ = Describe("Incident behavior", func() {
 							inc = Incident{
 								FieldEngineerID: &feUUID,
 							}
+							err := inc.SetState(StateNew)
+							Expect(err).To(BeNil())
 						})
 
 						JustBeforeEach(func() {
+							Expect(inc.State()).To(Equal(StateNew))
 							err := inc.StartWorking(actorUser, true)
 							Expect(err).To(BeNil())
 						})
@@ -142,6 +146,25 @@ var _ = Describe("Incident behavior", func() {
 							Expect(inc.State()).To(Equal(StateInProgress))
 						})
 					})
+
+					Context("but the incident is not in New, InProgress or OnHold state", func() {
+						var inc Incident
+
+						BeforeEach(func() {
+							feUUID := fieldEngineer.UUID()
+							inc = Incident{
+								FieldEngineerID: &feUUID,
+							}
+							err := inc.SetState(StatePreOnHold)
+							Expect(err).To(BeNil())
+						})
+
+						It("should return error", func() {
+							err := inc.StartWorking(actorUser, false)
+							Expect(err).NotTo(BeNil())
+							Expect(err.Error()).To(Equal("ticket is not in New, InProgress nor OnHold state"))
+						})
+					})
 				})
 			})
 		})
@@ -152,9 +175,9 @@ var _ = Describe("Incident behavior", func() {
 			var inc Incident
 
 			BeforeEach(func() {
-				inc = Incident{
-					state: StateNew,
-				}
+				inc = Incident{}
+				err := inc.SetState(StateNew)
+				Expect(err).To(BeNil())
 			})
 
 			JustBeforeEach(func() {
@@ -171,9 +194,9 @@ var _ = Describe("Incident behavior", func() {
 			var inc Incident
 
 			BeforeEach(func() {
-				inc = Incident{
-					state: StateInProgress,
-				}
+				inc = Incident{}
+				err := inc.SetState(StateInProgress)
+				Expect(err).To(BeNil())
 			})
 
 			It("should return error", func() {

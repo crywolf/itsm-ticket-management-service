@@ -3,7 +3,7 @@ package fieldengineer
 import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	tsession "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
@@ -32,24 +32,26 @@ func (e FieldEngineer) AllowedActions(actor actor.Actor) []string {
 }
 
 // StartWorking can be used by assigned field engineer to start working on the ticket
-func (e *FieldEngineer) StartWorking(actor actor.Actor, incidentID ref.UUID) error {
+func (e *FieldEngineer) StartWorking(actor actor.Actor, inc incident.Incident) error {
 	if err := e.canStartWorking(actor); err != nil {
 		return err
 	}
 
-	if e.HasOpenTimeSession() {
-		if err := e.openTimeSession.AddIncident(incidentID); err != nil {
+	if !e.HasOpenTimeSession() {
+		// open new time session
+		newTimeSession := &tsession.TimeSession{}
+		if err := newTimeSession.SetState(tsession.StateWork); err != nil {
 			return err
 		}
+		if err := newTimeSession.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
+			return err
+		}
+		e.openTimeSession = newTimeSession
 	}
 
-	// open new time session
-	newTimeSession := &tsession.TimeSession{}
-	if err := newTimeSession.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
+	if err := e.openTimeSession.StartWorking(inc); err != nil {
 		return err
 	}
-
-	e.openTimeSession = newTimeSession
 
 	return nil
 }
@@ -59,7 +61,7 @@ func (e *FieldEngineer) canStartWorking(actor actor.Actor) error {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not field engineer")
 	}
 
-	if actor.IsFieldEngineer() && actor.BasicUser.UUID() != e.uuid {
+	if actor.IsFieldEngineer() && *actor.FieldEngineerID() != e.uuid {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not this field engineer")
 	}
 

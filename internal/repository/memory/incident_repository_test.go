@@ -63,10 +63,10 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 
 	// test correct timestamps
 	assert.NotEmpty(t, inc1.CreatedUpdated.CreatedByID())
-	assert.Equal(t, inc1.CreatedUpdated.CreatedByID(), retInc.CreatedUpdated.CreatedByID())
+	assert.Equal(t, inc1.CreatedUpdated.CreatedBy(), retInc.CreatedUpdated.CreatedBy())
 	assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.CreatedAt())
 
-	assert.NotEmpty(t, inc1.CreatedUpdated.UpdatedBy())
+	assert.NotEmpty(t, inc1.CreatedUpdated.UpdatedByID())
 	assert.Equal(t, inc1.CreatedUpdated.UpdatedBy(), retInc.CreatedUpdated.UpdatedBy())
 	assert.Equal(t, clock.NowFormatted(), retInc.CreatedUpdated.UpdatedAt())
 }

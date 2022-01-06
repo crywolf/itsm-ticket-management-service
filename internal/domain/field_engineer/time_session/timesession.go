@@ -3,6 +3,8 @@ package tsession
 import (
 	"fmt"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 )
@@ -14,7 +16,7 @@ type TimeSession struct {
 	// State of the time session
 	state State
 
-	Incidents []ref.UUID
+	Incidents []IncidentInfo
 
 	// Time spent working (in seconds) counted from all timespans
 	Work uint
@@ -29,6 +31,12 @@ type TimeSession struct {
 	TravelDistanceInTravelUnits uint
 
 	CreatedUpdated types.CreatedUpdated
+}
+
+// IncidentInfo contains basic info about incident in the session
+type IncidentInfo struct {
+	IncidentID         ref.UUID
+	HasSupplierProduct bool
 }
 
 // UUID getter
@@ -57,7 +65,42 @@ func (e *TimeSession) SetState(s State) error {
 	return nil
 }
 
-// AddIncident adds incident to time session
-func (e *TimeSession) AddIncident(incidentID ref.UUID) error {
+// StartWorking add incident to time session a sets it to Work state
+func (e *TimeSession) StartWorking(inc incident.Incident) error {
+	if e.state != StateTravel && e.state != StateWork {
+		return domain.NewErrorf(domain.ErrorCodeUnknown, "time session is not in Travel nor Work state")
+	}
+
+	e.state = StateWork
+	return e.AddIncident(inc)
+}
+
+// AddIncident adds incident to the time session (skips adding the same incident multiple times)
+func (e *TimeSession) AddIncident(inc incident.Incident) error {
+	//hasSp := inc.SupplierProduct != nil // TODO supplier product not implemented yet
+	hasSp := true
+
+	for _, info := range e.Incidents {
+		// skip adding already added one
+		if info.IncidentID == inc.UUID() {
+			return nil
+		}
+
+		// prevent mixing tickets with and without supplier products
+		if info.HasSupplierProduct != hasSp {
+			return domain.NewErrorf(domain.ErrorCodeInvalidArgument, "cannot mix incidents with and without supplier product in the time session")
+		}
+	}
+
+	if e.state != StateWork {
+		return domain.NewErrorf(domain.ErrorCodeUnknown, "time session is not in Work state")
+	}
+
+	incInfo := IncidentInfo{
+		IncidentID:         inc.UUID(),
+		HasSupplierProduct: hasSp,
+	}
+	e.Incidents = append(e.Incidents, incInfo)
+
 	return nil
 }

@@ -18,4 +18,3 @@ type Timelog struct {
 
 	UpdatedBy string
 }
-

@@ -96,5 +96,9 @@ func (e *Incident) canStartWorking(actor actor.Actor) error {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "ticket already has an open timelog")
 	}
 
+	if e.state != StateNew && e.state != StateInProgress && e.state != StateOnHold {
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "ticket is not in New, InProgress nor OnHold state")
+	}
+
 	return nil
 }
