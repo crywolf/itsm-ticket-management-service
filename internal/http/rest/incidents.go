@@ -19,6 +19,7 @@ func (s Server) registerIncidentRoutes() {
 	s.router.PATCH("/incidents/:id", s.UpdateIncident())
 	s.router.GET("/incidents/:id", s.GetIncident())
 	s.router.GET("/incidents", s.ListIncidents())
+	s.router.POST("/incidents/:id/start_working", s.IncidentStartWorking())
 }
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -199,6 +200,57 @@ func (s *Server) ListIncidents() func(w http.ResponseWriter, r *http.Request, _ 
 	}
 }
 
+// swagger:route POST /incidents/{uuid}/start_working incidents IncidentStartWorking
+// Starts working on incident by field engineer
+// responses:
+//	204: incidentNoContentResponse
+//	400: errorResponse400
+//	401: errorResponse401
+//  403: errorResponse403
+const incidentStartWorkingRoute = "/incidents/{uuid}/start_working"
+
+// IncidentStartWorking returns handler for start working action
+func (s *Server) IncidentStartWorking() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		incID := params.ByName("id")
+		if incID == "" {
+			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
+			s.logger.Errorw("IncidentStartWorking handler failed", "error", err)
+			s.presenters.base.RenderError(w, "", err)
+			return
+		}
+
+		// TODO params (remote)
+		//incPayload, err := s.inputPayloadConverters.incident.IncidentCreateParamsFromBody(r)
+		//if err != nil {
+		//	s.logger.Warnw("IncidentStartWorking handler failed", "error", err)
+		//	s.presenters.incident.RenderError(w, "", err)
+		//	return
+		//}
+
+		channelID, err := s.assertChannelID(w, r)
+		if err != nil {
+			return
+		}
+
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
+			s.logger.Errorw("IncidentStartWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		err = s.incidentService.StartWorking(r.Context(), channelID, actorUser, ref.UUID(incID))
+		if err != nil {
+			s.logger.Errorw("IncidentStartWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		s.presenters.incident.RenderNoContentHeader(w, listIncidentsRoute, ref.UUID(incID))
+	}
+}
+
 // IncidentHypermediaMapper implements hypermedia mapping functionality for incident resource
 type IncidentHypermediaMapper struct {
 	ctx       context.Context
@@ -247,5 +299,3 @@ const getBasicUserRoute = "/basic_user/{uuid}"
 
 // TODO implement routes - they are just for testing at the moment
 const cancelIncidentRoute = "/incidents/{uuid}/cancel"
-
-const incidentStartWorkingRoute = "/incidents/{uuid}/start_working"

@@ -67,6 +67,9 @@ func (e *Incident) StartWorking(actor actor.Actor, remote bool) error {
 	if err := newTimelog.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
 		return err
 	}
+	if err := newTimelog.CreatedUpdated.SetUpdatedBy(actor.BasicUser); err != nil {
+		return err
+	}
 
 	e.openTimelog = newTimelog
 

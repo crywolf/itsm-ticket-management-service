@@ -24,4 +24,7 @@ type IncidentService interface {
 
 	// ListIncidents returns the list of incidents from the repository
 	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, paginationParams converters.PaginationParams) (repository.IncidentList, error)
+
+	// StartWorking enables start working on the incident by actor (field engineer)
+	StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error
 }

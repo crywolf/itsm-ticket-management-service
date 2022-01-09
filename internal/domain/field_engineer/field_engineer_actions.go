@@ -46,6 +46,9 @@ func (e *FieldEngineer) StartWorking(actor actor.Actor, inc incident.Incident) e
 		if err := newTimeSession.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
 			return err
 		}
+		if err := newTimeSession.CreatedUpdated.SetUpdatedBy(actor.BasicUser); err != nil {
+			return err
+		}
 		e.openTimeSession = newTimeSession
 	}
 

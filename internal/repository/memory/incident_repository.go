@@ -128,7 +128,7 @@ func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.Chann
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
 		FieldEngineerID:  feUUID,
-		State:            incident.StateNew.String(),
+		State:            inc.State().String(),
 		Timelogs:         timelogUUIDs,
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        inc.CreatedUpdated.CreatedAt().String(),

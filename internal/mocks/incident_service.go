@@ -31,7 +31,7 @@ func (s *IncidentServiceMock) UpdateIncident(_ context.Context, channelID ref.Ch
 
 // GetIncident mock
 func (s *IncidentServiceMock) GetIncident(_ context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID) (incident.Incident, error) {
-	args := s.Called(ID, channelID, actor)
+	args := s.Called(channelID, actor, ID)
 	return args.Get(0).(incident.Incident), args.Error(1)
 }
 
@@ -39,4 +39,10 @@ func (s *IncidentServiceMock) GetIncident(_ context.Context, channelID ref.Chann
 func (s *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.ChannelID, actor actor.Actor, paginationParams converters.PaginationParams) (repository.IncidentList, error) {
 	args := s.Called(channelID, actor, paginationParams)
 	return args.Get(0).(repository.IncidentList), args.Error(1)
+}
+
+// StartWorking mock
+func (s *IncidentServiceMock) StartWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error {
+	args := s.Called(channelID, actor, incID)
+	return args.Error(0)
 }

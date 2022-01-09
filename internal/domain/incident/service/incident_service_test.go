@@ -6,6 +6,9 @@ import (
 	"time"
 
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
+	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
+	tsession "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -181,4 +184,80 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	// timestamp updatedAt should change
 	assert.NotEqual(t, origInc.CreatedUpdated.UpdatedAt(), updatedInc.CreatedUpdated.UpdatedAt())
 	assert.Equal(t, updatedInc.UUID(), incID)
+}
+
+func Test_incidentService_StartWorking(t *testing.T) {
+	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
+	ctx := context.Background()
+
+	basicUser := user.BasicUser{
+		ExternalUserUUID: "b306a60e-a2a5-463f-a6e1-33e8cb21bc3b",
+		Name:             "Alfred",
+		Surname:          "Koletschko",
+		OrgDisplayName:   "KompiTech",
+		OrgName:          "a897a407-e41b-4b14-924a-39f5d5a8038f.kompitech.com",
+	}
+
+	basicUserRepository := &memory.BasicUserRepositoryMemory{}
+	basicUserID, err := basicUserRepository.AddBasicUser(ctx, channelID, basicUser)
+	require.NoError(t, err)
+
+	err = basicUser.SetUUID(basicUserID)
+	require.NoError(t, err)
+
+	actorUser := actor.Actor{BasicUser: basicUser}
+
+	clock := mocks.NewFixedClock()
+	fieldEngineerRepository := memory.NewFieldEngineerRepositoryMemory(clock, basicUserRepository)
+	feSvc := fieldengineersvc.NewFieldEngineerService(fieldEngineerRepository)
+
+	incidentRepository := memory.NewIncidentRepositoryMemory(clock, basicUserRepository, fieldEngineerRepository)
+	svc := NewIncidentService(incidentRepository, fieldEngineerRepository)
+
+	// create field engineer
+	fe := fieldengineer.FieldEngineer{BasicUser: basicUser}
+	err = fe.CreatedUpdated.SetCreatedBy(basicUser)
+	require.NoError(t, err)
+	err = fe.CreatedUpdated.SetUpdatedBy(basicUser)
+	require.NoError(t, err)
+	feID, err := fieldEngineerRepository.AddFieldEngineer(ctx, channelID, fe)
+	require.NoError(t, err)
+
+	// set actor as field engineer
+	actorUser.SetFieldEngineerID(&feID)
+
+	// CreateIncident
+	feUUID := api.UUID(feID)
+	incParams := api.CreateIncidentParams{
+		Number:           "ABC123",
+		ShortDescription: "Some incident 1",
+		Description:      "Nice one",
+		FieldEngineerID:  &feUUID,
+	}
+	incID, err := svc.CreateIncident(ctx, channelID, actorUser, incParams)
+	require.NoError(t, err)
+
+	// StartWorking
+	err = svc.StartWorking(ctx, channelID, actorUser, incID)
+	require.NoError(t, err)
+
+	// GetIncident
+	updatedInc, err := svc.GetIncident(ctx, channelID, actorUser, incID)
+	require.NoError(t, err)
+
+	assert.Equal(t, incParams.Number, updatedInc.Number)
+	assert.Equal(t, incParams.ExternalID, updatedInc.ExternalID)
+	assert.Equal(t, incident.StateInProgress, updatedInc.State())
+
+	// GetFieldEngineer
+	updatedFe, err := feSvc.GetFieldEngineer(ctx, channelID, actorUser, feID)
+	require.NoError(t, err)
+
+	assert.Len(t, updatedFe.TimeSessions, 1)
+	assert.Equal(t, true, updatedFe.HasOpenTimeSession())
+	assert.NotNil(t, updatedFe.OpenTimeSession())
+	openTS := updatedFe.OpenTimeSession()
+	assert.Equal(t, tsession.StateWork, openTS.State())
+	assert.Len(t, openTS.Incidents, 1)
+	assert.Equal(t, incID, openTS.Incidents[0].IncidentID)
 }

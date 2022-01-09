@@ -16,6 +16,6 @@ type FieldEngineerServiceMock struct {
 
 // GetFieldEngineer mock
 func (s *FieldEngineerServiceMock) GetFieldEngineer(_ context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID) (fieldengineer.FieldEngineer, error) {
-	args := s.Called(ID, channelID, actor)
+	args := s.Called(channelID, actor, ID)
 	return args.Get(0).(fieldengineer.FieldEngineer), args.Error(1)
 }

@@ -15,13 +15,13 @@ import (
 // NewIncidentService creates the incident service
 func NewIncidentService(repo repository.IncidentRepository, fieldEngineerRepository repository.FieldEngineerRepository) IncidentService {
 	return &incidentService{
-		repo:                    repo,
+		incidentRepository:      repo,
 		fieldEngineerRepository: fieldEngineerRepository,
 	}
 }
 
 type incidentService struct {
-	repo                    repository.IncidentRepository
+	incidentRepository      repository.IncidentRepository
 	fieldEngineerRepository repository.FieldEngineerRepository
 }
 
@@ -51,12 +51,12 @@ func (s *incidentService) CreateIncident(ctx context.Context, channelID ref.Chan
 		return ref.UUID(""), err
 	}
 
-	return s.repo.AddIncident(ctx, channelID, newIncident)
+	return s.incidentRepository.AddIncident(ctx, channelID, newIncident)
 }
 
 // UpdateIncident updates the given incident in the repository
 func (s *incidentService) UpdateIncident(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, ID ref.UUID, params api.UpdateIncidentParams) (ref.UUID, error) {
-	inc, err := s.repo.GetIncident(ctx, channelID, ID)
+	inc, err := s.incidentRepository.GetIncident(ctx, channelID, ID)
 	if err != nil {
 		return ref.UUID(""), err
 	}
@@ -77,13 +77,49 @@ func (s *incidentService) UpdateIncident(ctx context.Context, channelID ref.Chan
 		return ref.UUID(""), err
 	}
 
-	return s.repo.UpdateIncident(ctx, channelID, inc)
+	return s.incidentRepository.UpdateIncident(ctx, channelID, inc)
 }
 
 func (s *incidentService) GetIncident(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, ID ref.UUID) (incident.Incident, error) {
-	return s.repo.GetIncident(ctx, channelID, ID)
+	return s.incidentRepository.GetIncident(ctx, channelID, ID)
 }
 
 func (s *incidentService) ListIncidents(ctx context.Context, channelID ref.ChannelID, _ actor.Actor, params converters.PaginationParams) (repository.IncidentList, error) {
-	return s.repo.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
+	return s.incidentRepository.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
+}
+
+func (s *incidentService) StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error {
+	if !actor.IsFieldEngineer() {
+		return domain.NewErrorf(domain.ErrorCodeUserNotAuthorized, "actor is not field engineer")
+	}
+	feID := actor.FieldEngineerID()
+
+	inc, err := s.incidentRepository.GetIncident(ctx, channelID, incID)
+	if err != nil {
+		return err
+	}
+
+	fe, err := s.fieldEngineerRepository.GetFieldEngineer(ctx, channelID, *feID)
+	if err != nil {
+		return err
+	}
+
+	// TODO params (remote)
+	if err := inc.StartWorking(actor, false); err != nil {
+		return err
+	}
+
+	if err := fe.StartWorking(actor, inc); err != nil {
+		return err
+	}
+
+	if _, err := s.incidentRepository.UpdateIncident(ctx, channelID, inc); err != nil {
+		return err
+	}
+
+	if _, err := s.fieldEngineerRepository.UpdateFieldEngineer(ctx, channelID, fe); err != nil {
+		return err
+	}
+
+	return nil
 }
