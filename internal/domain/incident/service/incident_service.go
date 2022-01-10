@@ -88,9 +88,9 @@ func (s *incidentService) ListIncidents(ctx context.Context, channelID ref.Chann
 	return s.incidentRepository.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
 }
 
-func (s *incidentService) StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error {
+func (s *incidentService) StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error {
 	if !actor.IsFieldEngineer() {
-		return domain.NewErrorf(domain.ErrorCodeUserNotAuthorized, "actor is not field engineer")
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not field engineer")
 	}
 	feID := actor.FieldEngineerID()
 
@@ -104,8 +104,7 @@ func (s *incidentService) StartWorking(ctx context.Context, channelID ref.Channe
 		return err
 	}
 
-	// TODO params (remote)
-	if err := inc.StartWorking(actor, false); err != nil {
+	if err := inc.StartWorking(actor, params.Remote); err != nil {
 		return err
 	}
 

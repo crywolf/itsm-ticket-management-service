@@ -829,7 +829,7 @@ func TestIncidentStartWorkingHandler(t *testing.T) {
 			Return(actorUser, nil)
 
 		incidentSvc := new(mocks.IncidentServiceMock)
-		incidentSvc.On("StartWorking", ref.ChannelID(channelID), actorUser, ref.UUID(uuid)).
+		incidentSvc.On("StartWorking", ref.ChannelID(channelID), actorUser, ref.UUID(uuid), mock.AnythingOfType("api.IncidentStartWorkingParams")).
 			Return(nil)
 
 		server := NewServer(Config{
@@ -840,7 +840,10 @@ func TestIncidentStartWorkingHandler(t *testing.T) {
 			ExternalLocationAddress: "http://service.url",
 		})
 
-		req := httptest.NewRequest("POST", "/incidents/"+uuid+"/start_working", nil)
+		payload := []byte(`{}`)
+
+		body := bytes.NewReader(payload)
+		req := httptest.NewRequest("POST", "/incidents/"+uuid+"/start_working", body)
 		req.Header.Set("channel-id", channelID)
 		req.Header.Set("authorization", bearerToken)
 

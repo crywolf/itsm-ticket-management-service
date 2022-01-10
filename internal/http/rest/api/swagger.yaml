@@ -315,6 +315,15 @@ definitions:
     title: IncidentResponse ...
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  IncidentStartWorkingParams:
+    description: IncidentStartWorkingParams is the payload used to start working on
+      the incident
+    properties:
+      remote:
+        type: boolean
+        x-go-name: Remote
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   Link:
     description: Link represents HAL hypermedia link
     properties:
@@ -577,6 +586,11 @@ paths:
         required: true
         type: string
         x-go-name: UUID
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/IncidentStartWorkingParams'
       responses:
         "204":
           $ref: '#/responses/incidentNoContentResponse'

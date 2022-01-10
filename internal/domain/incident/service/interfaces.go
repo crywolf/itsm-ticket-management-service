@@ -26,5 +26,5 @@ type IncidentService interface {
 	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, paginationParams converters.PaginationParams) (repository.IncidentList, error)
 
 	// StartWorking enables start working on the incident by actor (field engineer)
-	StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error
+	StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error
 }

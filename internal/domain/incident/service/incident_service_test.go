@@ -238,7 +238,8 @@ func Test_incidentService_StartWorking(t *testing.T) {
 	require.NoError(t, err)
 
 	// StartWorking
-	err = svc.StartWorking(ctx, channelID, actorUser, incID)
+	remote := true
+	err = svc.StartWorking(ctx, channelID, actorUser, incID, api.IncidentStartWorkingParams{Remote: remote})
 	require.NoError(t, err)
 
 	// GetIncident
@@ -248,6 +249,8 @@ func Test_incidentService_StartWorking(t *testing.T) {
 	assert.Equal(t, incParams.Number, updatedInc.Number)
 	assert.Equal(t, incParams.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, incident.StateInProgress, updatedInc.State())
+	assert.True(t, updatedInc.HasOpenTimelog())
+	assert.Equal(t, remote, updatedInc.OpenTimelog().Remote)
 
 	// GetFieldEngineer
 	updatedFe, err := feSvc.GetFieldEngineer(ctx, channelID, actorUser, feID)

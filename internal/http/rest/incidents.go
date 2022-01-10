@@ -220,13 +220,12 @@ func (s *Server) IncidentStartWorking() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		// TODO params (remote)
-		//incPayload, err := s.inputPayloadConverters.incident.IncidentCreateParamsFromBody(r)
-		//if err != nil {
-		//	s.logger.Warnw("IncidentStartWorking handler failed", "error", err)
-		//	s.presenters.incident.RenderError(w, "", err)
-		//	return
-		//}
+		payload, err := s.inputPayloadConverters.incident.IncidentStartWorkingParamsFromBody(r)
+		if err != nil {
+			s.logger.Warnw("IncidentStartWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
 
 		channelID, err := s.assertChannelID(w, r)
 		if err != nil {
@@ -240,7 +239,7 @@ func (s *Server) IncidentStartWorking() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		err = s.incidentService.StartWorking(r.Context(), channelID, actorUser, ref.UUID(incID))
+		err = s.incidentService.StartWorking(r.Context(), channelID, actorUser, ref.UUID(incID), payload)
 		if err != nil {
 			s.logger.Errorw("IncidentStartWorking handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)

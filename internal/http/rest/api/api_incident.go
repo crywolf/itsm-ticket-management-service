@@ -126,3 +126,18 @@ type incidentNoContentResponseWrapper struct {
 	// example: http://localhost:8080/incidents/2af4f493-0bd5-4513-b440-6cbb465feadb
 	Location string
 }
+
+///////////////////
+
+// IncidentStartWorkingParams is the payload used to start working on the incident
+// swagger:model
+type IncidentStartWorkingParams struct {
+	Remote bool `json:"remote"`
+}
+
+// swagger:parameters IncidentStartWorking
+type incidentStartWorkingParameterWrapper struct {
+	// in: body
+	// required: true
+	Body IncidentStartWorkingParams
+}

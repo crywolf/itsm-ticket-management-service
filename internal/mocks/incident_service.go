@@ -42,7 +42,7 @@ func (s *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.Cha
 }
 
 // StartWorking mock
-func (s *IncidentServiceMock) StartWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID) error {
-	args := s.Called(channelID, actor, incID)
+func (s *IncidentServiceMock) StartWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error {
+	args := s.Called(channelID, actor, incID, params)
 	return args.Error(0)
 }
