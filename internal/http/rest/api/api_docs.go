@@ -27,7 +27,7 @@ type generalNoParameterWrapper struct {
 	AuthorizationHeaders
 }
 
-// swagger:parameters GetIncident UpdateIncident IncidentStartWorking
+// swagger:parameters GetIncident UpdateIncident IncidentStartWorking IncidentStopWorking
 type generalIDParameterWrapper struct {
 	AuthorizationHeaders
 

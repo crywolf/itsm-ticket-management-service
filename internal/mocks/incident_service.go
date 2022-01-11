@@ -3,6 +3,7 @@ package mocks
 import (
 	"context"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -42,7 +43,13 @@ func (s *IncidentServiceMock) ListIncidents(_ context.Context, channelID ref.Cha
 }
 
 // StartWorking mock
-func (s *IncidentServiceMock) StartWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error {
+func (s *IncidentServiceMock) StartWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams, _ domain.Clock) error {
+	args := s.Called(channelID, actor, incID, params)
+	return args.Error(0)
+}
+
+// StopWorking mock
+func (s *IncidentServiceMock) StopWorking(_ context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStopWorkingParams, _ domain.Clock) error {
 	args := s.Called(channelID, actor, incID, params)
 	return args.Error(0)
 }

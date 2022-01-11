@@ -141,3 +141,16 @@ type incidentStartWorkingParameterWrapper struct {
 	// required: true
 	Body IncidentStartWorkingParams
 }
+
+// IncidentStopWorkingParams is the payload used to stop working on the incident
+// swagger:model
+type IncidentStopWorkingParams struct {
+	VisitSummary string `json:"visit_summary" validate:"required"`
+}
+
+// swagger:parameters IncidentStopWorking
+type incidentStopWorkingParameterWrapper struct {
+	// in: body
+	// required: true
+	Body IncidentStopWorkingParams
+}

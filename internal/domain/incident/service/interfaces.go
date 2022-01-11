@@ -3,6 +3,7 @@ package incidentsvc
 import (
 	"context"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
@@ -25,6 +26,9 @@ type IncidentService interface {
 	// ListIncidents returns the list of incidents from the repository
 	ListIncidents(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, paginationParams converters.PaginationParams) (repository.IncidentList, error)
 
-	// StartWorking enables start working on the incident by actor (field engineer)
-	StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error
+	// StartWorking is used by actor (field engineer) to start working on the incident
+	StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams, clock domain.Clock) error
+
+	// StopWorking is used by actor (field engineer) to stop working on the incident
+	StopWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStopWorkingParams, clock domain.Clock) error
 }

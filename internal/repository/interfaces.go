@@ -2,12 +2,23 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 )
+
+// Clock provides Now method to enable mocking
+type Clock interface {
+	// Now returns current time
+	Now() time.Time
+
+	// NowFormatted returns time in RFC3339 format
+	NowFormatted() types.DateTime
+}
 
 // BasicUserRepository provides access to the Basic User repository
 type BasicUserRepository interface {

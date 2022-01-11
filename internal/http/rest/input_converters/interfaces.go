@@ -25,4 +25,7 @@ type IncidentPayloadConverter interface {
 
 	// IncidentStartWorkingParamsFromBody converts JSON payload to api.IncidentStartWorkingParams
 	IncidentStartWorkingParamsFromBody(r *http.Request) (api.IncidentStartWorkingParams, error)
+
+	// IncidentStopWorkingParamsFromBody converts JSON payload to api.IncidentStopWorkingParams
+	IncidentStopWorkingParamsFromBody(r *http.Request) (api.IncidentStopWorkingParams, error)
 }

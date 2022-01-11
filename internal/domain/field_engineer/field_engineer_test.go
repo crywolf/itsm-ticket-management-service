@@ -161,7 +161,7 @@ var _ = Describe("Field Engineer behavior", func() {
 						err := fieldEngineer.StartWorking(actorUser, inc)
 						Expect(err).NotTo(BeNil())
 
-						Expect(err.Error()).To(Equal("time session is not in Travel nor Work state"))
+						Expect(err.Error()).To(Equal("time session is not in New, Travel nor Work state"))
 					})
 
 					When("time session is in Brake state", func() {
@@ -175,7 +175,7 @@ var _ = Describe("Field Engineer behavior", func() {
 							err := fieldEngineer.StartWorking(actorUser, inc)
 							Expect(err).NotTo(BeNil())
 
-							Expect(err.Error()).To(Equal("time session is not in Travel nor Work state"))
+							Expect(err.Error()).To(Equal("time session is not in New, Travel nor Work state"))
 						})
 					})
 
@@ -190,7 +190,7 @@ var _ = Describe("Field Engineer behavior", func() {
 							err := fieldEngineer.StartWorking(actorUser, inc)
 							Expect(err).NotTo(BeNil())
 
-							Expect(err.Error()).To(Equal("time session is not in Travel nor Work state"))
+							Expect(err.Error()).To(Equal("time session is not in New, Travel nor Work state"))
 						})
 					})
 				})

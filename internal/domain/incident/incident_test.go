@@ -2,6 +2,7 @@ package incident_test
 
 import (
 	"testing"
+	"time"
 
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	. "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
@@ -9,6 +10,7 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -23,6 +25,7 @@ var _ = Describe("Incident behavior", func() {
 	var basicUser user.BasicUser
 	var fieldEngineer fieldengineer.FieldEngineer
 	var actorUser actor.Actor
+	var clock *mocks.FixedClock
 
 	BeforeEach(func() {
 		basicUser = user.BasicUser{
@@ -42,6 +45,8 @@ var _ = Describe("Incident behavior", func() {
 		actorUser = actor.Actor{
 			BasicUser: basicUser,
 		}
+
+		clock = mocks.NewFixedClock()
 	})
 
 	Describe("StartWorking()", func() {
@@ -53,7 +58,7 @@ var _ = Describe("Incident behavior", func() {
 			})
 
 			It("should return error", func() {
-				err := inc.StartWorking(actorUser, false)
+				err := inc.StartWorking(actorUser, clock, false)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("user is not field engineer, only assigned field engineer can start working"))
 			})
@@ -73,7 +78,7 @@ var _ = Describe("Incident behavior", func() {
 				})
 
 				It("should return error", func() {
-					err := inc.StartWorking(actorUser, false)
+					err := inc.StartWorking(actorUser, clock, false)
 					Expect(err).NotTo(BeNil())
 					Expect(err.Error()).To(Equal("ticket does not have any field engineer assigned"))
 				})
@@ -91,7 +96,7 @@ var _ = Describe("Incident behavior", func() {
 					})
 
 					It("should return error", func() {
-						err := inc.StartWorking(actorUser, false)
+						err := inc.StartWorking(actorUser, clock, false)
 						Expect(err).NotTo(BeNil())
 						Expect(err.Error()).To(Equal("user is not assigned as field engineer, only assigned field engineer can start working"))
 					})
@@ -110,7 +115,7 @@ var _ = Describe("Incident behavior", func() {
 						})
 
 						It("should return error", func() {
-							err := inc.StartWorking(actorUser, false)
+							err := inc.StartWorking(actorUser, clock, false)
 							Expect(err).NotTo(BeNil())
 							Expect(err.Error()).To(Equal("ticket already has an open timelog"))
 						})
@@ -130,7 +135,7 @@ var _ = Describe("Incident behavior", func() {
 
 						JustBeforeEach(func() {
 							Expect(inc.State()).To(Equal(StateNew))
-							err := inc.StartWorking(actorUser, true)
+							err := inc.StartWorking(actorUser, clock, true)
 							Expect(err).To(BeNil())
 						})
 
@@ -138,11 +143,11 @@ var _ = Describe("Incident behavior", func() {
 							Expect(inc.HasOpenTimelog()).To(BeTrue())
 						})
 
-						It("should set the 'remote' param in the timelog", func() {
+						It("should set the Remote param in the open timelog", func() {
 							Expect(inc.OpenTimelog().Remote).To(Equal(true))
 						})
 
-						It("should set state to 'in progress'", func() {
+						It("should set state to InProgress", func() {
 							Expect(inc.State()).To(Equal(StateInProgress))
 						})
 					})
@@ -160,7 +165,7 @@ var _ = Describe("Incident behavior", func() {
 						})
 
 						It("should return error", func() {
-							err := inc.StartWorking(actorUser, false)
+							err := inc.StartWorking(actorUser, clock, false)
 							Expect(err).NotTo(BeNil())
 							Expect(err.Error()).To(Equal("ticket is not in New, InProgress nor OnHold state"))
 						})
@@ -170,8 +175,122 @@ var _ = Describe("Incident behavior", func() {
 		})
 	})
 
+	Describe("StopWorking()", func() {
+		When("called by actor that is not field engineer", func() {
+			var inc Incident
+
+			BeforeEach(func() {
+				inc = Incident{}
+			})
+
+			It("should return error", func() {
+				err := inc.StopWorking(actorUser, clock, "summary")
+				Expect(err).NotTo(BeNil())
+				Expect(err.Error()).To(Equal("user is not field engineer, only assigned field engineer can stop working"))
+			})
+		})
+
+		When("called by field engineer actor", func() {
+			BeforeEach(func() {
+				feUUID := fieldEngineer.UUID()
+				actorUser.SetFieldEngineerID(&feUUID)
+			})
+
+			Context("but incident has no field engineer assigned", func() {
+				var inc Incident
+
+				BeforeEach(func() {
+					inc = Incident{}
+				})
+
+				It("should return error", func() {
+					err := inc.StopWorking(actorUser, clock, "summary")
+					Expect(err).NotTo(BeNil())
+					Expect(err.Error()).To(Equal("ticket does not have any field engineer assigned"))
+				})
+			})
+
+			Context("and incident has field engineer assigned", func() {
+				Context("but the assigned field engineer is different then the actor", func() {
+					var inc Incident
+
+					BeforeEach(func() {
+						feUUID := ref.UUID("63fcafcb-e0ac-490b-b67c-b6f60afeccfd")
+						inc = Incident{
+							FieldEngineerID: &feUUID,
+						}
+					})
+
+					It("should return error", func() {
+						err := inc.StopWorking(actorUser, clock, "summary")
+						Expect(err).NotTo(BeNil())
+						Expect(err.Error()).To(Equal("user is not assigned as field engineer, only assigned field engineer can stop working"))
+					})
+				})
+
+				Context("and the actor is assigned as field engineer", func() {
+					Context("but the incident has no open timelog", func() {
+						var inc Incident
+
+						BeforeEach(func() {
+							feUUID := fieldEngineer.UUID()
+							inc = Incident{
+								FieldEngineerID: &feUUID,
+							}
+							err := inc.SetState(StateInProgress)
+							Expect(err).To(BeNil())
+						})
+
+						It("should return error", func() {
+							err := inc.StopWorking(actorUser, clock, "summary")
+							Expect(err).NotTo(BeNil())
+							Expect(err.Error()).To(Equal("ticket does not have an open timelog"))
+						})
+					})
+
+					Context("and the incident has an open timelog", func() {
+						var inc Incident
+
+						BeforeEach(func() {
+							feUUID := fieldEngineer.UUID()
+							inc = Incident{
+								FieldEngineerID: &feUUID,
+							}
+							err := inc.SetState(StateInProgress)
+							Expect(err).To(BeNil())
+
+							inc.SetOpenTimelog(&timelog.Timelog{
+								Start: clock.NowFormatted(),
+							})
+						})
+
+						JustBeforeEach(func() {
+							clock.AddTime(time.Hour)
+							Expect(inc.HasOpenTimelog()).To(BeTrue())
+							err := inc.StopWorking(actorUser, clock, "summary")
+							Expect(err).To(BeNil())
+						})
+
+						It("should calculate correct Work in the open timelog", func() {
+							Expect(inc.OpenTimelog().End).To(Equal(clock.NowFormatted()))
+							Expect(inc.OpenTimelog().Work).To(Equal(uint(3600)))
+						})
+
+						It("should set the VisitSummary param in the open timelog", func() {
+							Expect(inc.OpenTimelog().VisitSummary).To(Equal("summary"))
+						})
+
+						It("should not change state", func() {
+							Expect(inc.State()).To(Equal(StateInProgress))
+						})
+					})
+				})
+			})
+		})
+	})
+
 	Describe("Cancel()", func() {
-		When("incident is in 'new' state", func() {
+		When("incident is in New' state", func() {
 			var inc Incident
 
 			BeforeEach(func() {
@@ -185,12 +304,12 @@ var _ = Describe("Incident behavior", func() {
 				Expect(err).To(BeNil())
 			})
 
-			It("should set state to 'cancelled'", func() {
+			It("should set state to Cancelled", func() {
 				Expect(inc.State()).To(Equal(StateCancelled))
 			})
 		})
 
-		When("incident is NOT in 'new' state", func() {
+		When("incident is NOT in New state", func() {
 			var inc Incident
 
 			BeforeEach(func() {
@@ -202,7 +321,7 @@ var _ = Describe("Incident behavior", func() {
 			It("should return error", func() {
 				err := inc.Cancel(actorUser)
 				Expect(err).NotTo(BeNil())
-				Expect(err.Error()).To(Equal("ticket can be cancelled only in NEW state"))
+				Expect(err.Error()).To(Equal("ticket can be cancelled only in New state"))
 			})
 		})
 	})

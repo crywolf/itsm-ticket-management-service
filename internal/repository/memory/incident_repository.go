@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"io"
-	"time"
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
@@ -13,27 +12,18 @@ import (
 	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
 )
 
-// Clock provides Now method to enable mocking
-type Clock interface {
-	// Now returns current time
-	Now() time.Time
-
-	// NowFormatted returns time in RFC3339 format
-	NowFormatted() types.DateTime
-}
-
 // IncidentRepositoryMemory keeps data in memory
 type IncidentRepositoryMemory struct {
 	basicUserRepository     repository.BasicUserRepository
 	fieldEngineerRepository repository.FieldEngineerRepository
 	Rand                    io.Reader
-	clock                   Clock
+	clock                   repository.Clock
 	incidents               []Incident
 	timelogs                map[string]Timelog
 }
 
 // NewIncidentRepositoryMemory returns new initialized repository
-func NewIncidentRepositoryMemory(clock Clock, basicUserRepo repository.BasicUserRepository, fieldEngineerRepository repository.FieldEngineerRepository) *IncidentRepositoryMemory {
+func NewIncidentRepositoryMemory(clock repository.Clock, basicUserRepo repository.BasicUserRepository, fieldEngineerRepository repository.FieldEngineerRepository) *IncidentRepositoryMemory {
 	return &IncidentRepositoryMemory{
 		basicUserRepository:     basicUserRepo,
 		fieldEngineerRepository: fieldEngineerRepository,
@@ -63,7 +53,7 @@ func (r *IncidentRepositoryMemory) AddIncident(_ context.Context, _ ref.ChannelI
 		ShortDescription: inc.ShortDescription,
 		Description:      inc.Description,
 		FieldEngineerID:  feUUID,
-		State:            incident.StateNew.String(),
+		State:            inc.State().String(),
 		CreatedBy:        inc.CreatedUpdated.CreatedByID().String(),
 		CreatedAt:        now,
 		UpdatedBy:        inc.CreatedUpdated.UpdatedByID().String(),
@@ -100,6 +90,8 @@ func (r *IncidentRepositoryMemory) UpdateIncident(_ context.Context, _ ref.Chann
 		storedTimelog := Timelog{
 			ID:           timelogID.String(),
 			Remote:       openTimelog.Remote,
+			Start:        openTimelog.Start.String(),
+			End:          openTimelog.End.String(),
 			Work:         openTimelog.Work,
 			VisitSummary: openTimelog.VisitSummary,
 			CreatedBy:    openTimelog.CreatedUpdated.CreatedByID().String(),
@@ -233,8 +225,15 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 		if storedTimelog.Work == 0 { // timelog is open
 			openTimelog := &timelog.Timelog{
 				Remote:       storedTimelog.Remote,
+				Start:        types.DateTime(storedTimelog.Start),
+				End:          types.DateTime(storedTimelog.End),
 				Work:         storedTimelog.Work,
 				VisitSummary: storedTimelog.VisitSummary,
+			}
+
+			err = openTimelog.SetUUID(ref.UUID(timelogID))
+			if err != nil {
+				return incident.Incident{}, domain.WrapErrorf(err, domain.ErrorCodeUnknown, errMsg, "openTimelog.ID")
 			}
 
 			createdByUser, err := r.basicUserRepository.GetBasicUser(ctx, channelID, ref.UUID(storedTimelog.CreatedBy))

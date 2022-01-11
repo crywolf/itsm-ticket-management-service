@@ -16,16 +16,19 @@ func (a AllowedAction) String() string {
 
 // AllowedActions values
 const (
-	ActionStartTravelling AllowedAction = "StartTravelling"
-	ActionStartWorking    AllowedAction = "StartWorking"
+	ActionStartTravelling     AllowedAction = "StartTravelling"
+	ActionStartTravellingBack AllowedAction = "StartTravellingBack"
+	ActionCloseTimeSession    AllowedAction = "CloseTimeSession"
+	//	ActionStartWorking    AllowedAction = "StartWorking"
+	//  ActionStopWorking AllowedAction = "StopWorking"
 )
 
 // AllowedActions returns list of actions that can be performed with the time session according to its state and other conditions
 func (e FieldEngineer) AllowedActions(actor actor.Actor) []string {
 	var acts []string
 
-	if err := e.canStartWorking(actor); err == nil {
-		acts = append(acts, ActionStartWorking.String())
+	if err := e.canStartTravelling(actor); err == nil {
+		acts = append(acts, ActionStartTravelling.String())
 	}
 
 	return acts
@@ -66,6 +69,22 @@ func (e *FieldEngineer) canStartWorking(actor actor.Actor) error {
 
 	if actor.IsFieldEngineer() && *actor.FieldEngineerID() != e.uuid {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not this field engineer")
+	}
+
+	return nil
+}
+
+func (e *FieldEngineer) canStartTravelling(actor actor.Actor) error {
+	if !actor.IsFieldEngineer() {
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not field engineer")
+	}
+
+	if actor.IsFieldEngineer() && *actor.FieldEngineerID() != e.uuid {
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not this field engineer")
+	}
+
+	if e.HasOpenTimeSession() {
+		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor already has an open time session")
 	}
 
 	return nil

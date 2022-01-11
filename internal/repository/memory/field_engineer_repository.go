@@ -16,13 +16,13 @@ import (
 type FieldEngineerRepositoryMemory struct {
 	basicUserRepository repository.BasicUserRepository
 	Rand                io.Reader
-	clock               Clock
+	clock               repository.Clock
 	fieldEngineers      []FieldEngineer
 	timeSessions        map[string]TimeSession
 }
 
 // NewFieldEngineerRepositoryMemory returns new initialized repository
-func NewFieldEngineerRepositoryMemory(clock Clock, basicUserRepo repository.BasicUserRepository) repository.FieldEngineerRepository {
+func NewFieldEngineerRepositoryMemory(clock repository.Clock, basicUserRepo repository.BasicUserRepository) repository.FieldEngineerRepository {
 	return &FieldEngineerRepositoryMemory{
 		basicUserRepository: basicUserRepo,
 		clock:               clock,

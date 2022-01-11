@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
 	incidentsvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/service"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
@@ -18,11 +19,11 @@ import (
 
 // Server is a http.Handler with dependencies
 type Server struct {
-	Addr      string
-	URISchema string
-	router    *httprouter.Router
-	logger    *zap.SugaredLogger
-	//authService             auth.Service
+	Addr                    string
+	URISchema               string
+	router                  *httprouter.Router
+	logger                  *zap.SugaredLogger
+	clock                   domain.Clock
 	externalUserService     externalusersvc.Service
 	incidentService         incidentsvc.IncidentService
 	fieldEngineerService    fieldengineersvc.FieldEngineerService
@@ -33,10 +34,10 @@ type Server struct {
 
 // Config contains server configuration and dependencies
 type Config struct {
-	Addr      string
-	URISchema string
-	Logger    *zap.SugaredLogger
-	//AuthService             auth.Service
+	Addr                    string
+	URISchema               string
+	Logger                  *zap.SugaredLogger
+	Clock                   domain.Clock
 	ExternalUserService     externalusersvc.Service
 	IncidentService         incidentsvc.IncidentService
 	FieldEngineerService    fieldengineersvc.FieldEngineerService
@@ -53,11 +54,11 @@ func NewServer(cfg Config) *Server {
 	}
 
 	s := &Server{
-		Addr:      cfg.Addr,
-		URISchema: URISchema,
-		router:    r,
-		logger:    cfg.Logger,
-		//authService:             cfg.AuthService,
+		Addr:                    cfg.Addr,
+		URISchema:               URISchema,
+		router:                  r,
+		logger:                  cfg.Logger,
+		clock:                   cfg.Clock,
 		externalUserService:     cfg.ExternalUserService,
 		incidentService:         cfg.IncidentService,
 		fieldEngineerService:    cfg.FieldEngineerService,

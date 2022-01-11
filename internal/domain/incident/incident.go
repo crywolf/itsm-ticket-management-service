@@ -3,10 +3,12 @@ package incident
 import (
 	"fmt"
 
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
@@ -33,6 +35,23 @@ type Incident struct {
 	Timelogs []ref.UUID
 
 	CreatedUpdated types.CreatedUpdated
+}
+
+// New creates initialized Incident
+func New(clock domain.Clock, basicUser user.BasicUser) (Incident, error) {
+	inc := Incident{state: StateNew}
+
+	now := clock.NowFormatted()
+
+	if err := inc.CreatedUpdated.SetCreated(basicUser, now); err != nil {
+		return inc, err
+	}
+
+	if err := inc.CreatedUpdated.SetUpdated(basicUser, now); err != nil {
+		return inc, err
+	}
+
+	return inc, nil
 }
 
 // UUID getter

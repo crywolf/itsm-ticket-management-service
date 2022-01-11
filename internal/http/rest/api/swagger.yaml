@@ -324,6 +324,15 @@ definitions:
         x-go-name: Remote
     type: object
     x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
+  IncidentStopWorkingParams:
+    description: IncidentStopWorkingParams is the payload used to stop working on
+      the incident
+    properties:
+      visit_summary:
+        type: string
+        x-go-name: VisitSummary
+    type: object
+    x-go-package: github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api
   Link:
     description: Link represents HAL hypermedia link
     properties:
@@ -591,6 +600,46 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/IncidentStartWorkingParams'
+      responses:
+        "204":
+          $ref: '#/responses/incidentNoContentResponse'
+        "400":
+          $ref: '#/responses/errorResponse400'
+        "401":
+          $ref: '#/responses/errorResponse401'
+        "403":
+          $ref: '#/responses/errorResponse403'
+      tags:
+      - incidents
+  /incidents/{uuid}/stop_working:
+    post:
+      description: Stops working on incident by field engineer
+      operationId: IncidentStopWorking
+      parameters:
+      - description: Bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+        x-go-name: Authorization
+      - format: uuid
+        in: header
+        name: channel-id
+        required: true
+        type: string
+        x-go-name: ChannelID
+      - description: ID of the resource
+        format: uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+        x-go-name: UUID
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/IncidentStopWorkingParams'
       responses:
         "204":
           $ref: '#/responses/incidentNoContentResponse'

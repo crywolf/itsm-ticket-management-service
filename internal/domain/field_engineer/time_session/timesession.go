@@ -67,8 +67,8 @@ func (e *TimeSession) SetState(s State) error {
 
 // StartWorking add incident to time session a sets it to Work state
 func (e *TimeSession) StartWorking(inc incident.Incident) error {
-	if e.state != StateTravel && e.state != StateWork {
-		return domain.NewErrorf(domain.ErrorCodeUnknown, "time session is not in Travel nor Work state")
+	if !e.state.IsZero() && e.state != StateTravel && e.state != StateWork {
+		return domain.NewErrorf(domain.ErrorCodeUnknown, "time session is not in New, Travel nor Work state")
 	}
 
 	e.state = StateWork

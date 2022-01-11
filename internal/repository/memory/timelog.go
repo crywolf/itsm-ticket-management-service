@@ -6,6 +6,10 @@ type Timelog struct {
 
 	Remote bool
 
+	Start string
+
+	End string
+
 	Work uint
 
 	VisitSummary string

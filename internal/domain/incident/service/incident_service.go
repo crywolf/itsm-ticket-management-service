@@ -13,9 +13,9 @@ import (
 )
 
 // NewIncidentService creates the incident service
-func NewIncidentService(repo repository.IncidentRepository, fieldEngineerRepository repository.FieldEngineerRepository) IncidentService {
+func NewIncidentService(incidentRepository repository.IncidentRepository, fieldEngineerRepository repository.FieldEngineerRepository) IncidentService {
 	return &incidentService{
-		incidentRepository:      repo,
+		incidentRepository:      incidentRepository,
 		fieldEngineerRepository: fieldEngineerRepository,
 	}
 }
@@ -42,6 +42,9 @@ func (s *incidentService) CreateIncident(ctx context.Context, channelID ref.Chan
 		ShortDescription: params.ShortDescription,
 		Description:      params.Description,
 		FieldEngineerID:  &feUUID,
+	}
+	if err := newIncident.SetState(incident.StateNew); err != nil {
+		return ref.UUID(""), err
 	}
 
 	if err := newIncident.CreatedUpdated.SetCreatedBy(actor.BasicUser); err != nil {
@@ -88,7 +91,7 @@ func (s *incidentService) ListIncidents(ctx context.Context, channelID ref.Chann
 	return s.incidentRepository.ListIncidents(ctx, channelID, params.Page(), params.ItemsPerPage())
 }
 
-func (s *incidentService) StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams) error {
+func (s *incidentService) StartWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStartWorkingParams, clock domain.Clock) error {
 	if !actor.IsFieldEngineer() {
 		return domain.NewErrorf(domain.ErrorCodeActionForbidden, "actor is not field engineer")
 	}
@@ -104,7 +107,7 @@ func (s *incidentService) StartWorking(ctx context.Context, channelID ref.Channe
 		return err
 	}
 
-	if err := inc.StartWorking(actor, params.Remote); err != nil {
+	if err := inc.StartWorking(actor, clock, params.Remote); err != nil {
 		return err
 	}
 
@@ -117,6 +120,23 @@ func (s *incidentService) StartWorking(ctx context.Context, channelID ref.Channe
 	}
 
 	if _, err := s.fieldEngineerRepository.UpdateFieldEngineer(ctx, channelID, fe); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *incidentService) StopWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStopWorkingParams, clock domain.Clock) error {
+	inc, err := s.incidentRepository.GetIncident(ctx, channelID, incID)
+	if err != nil {
+		return err
+	}
+
+	if err := inc.StopWorking(actor, clock, params.VisitSummary); err != nil {
+		return err
+	}
+
+	if _, err := s.incidentRepository.UpdateIncident(ctx, channelID, inc); err != nil {
 		return err
 	}
 

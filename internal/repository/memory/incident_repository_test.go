@@ -42,6 +42,8 @@ func TestIncidentRepositoryMemory_AddingAndGettingIncident(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
+	err = inc1.SetState(incident.StateNew)
+	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
@@ -133,6 +135,8 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
+	err = inc1.SetState(incident.StateNew)
+	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
@@ -176,7 +180,8 @@ func TestIncidentRepositoryMemory_UpdateIncident(t *testing.T) {
 	assert.Equal(t, fieldEngineer.UUID(), *updatedInc.FieldEngineerID)
 	assert.Len(t, updatedInc.Timelogs, 1, "timelogs count")
 
-	assert.Equal(t, retInc.OpenTimelog(), updatedInc.OpenTimelog())
+	assert.NotNil(t, updatedInc.OpenTimelog())
+	assert.IsType(t, retInc.OpenTimelog(), updatedInc.OpenTimelog())
 }
 
 func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
@@ -231,6 +236,8 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		ShortDescription: "some short description",
 		Description:      "some description",
 	}
+	err = inc1.SetState(incident.StateNew)
+	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc1.CreatedUpdated.SetUpdatedBy(basicUser)
@@ -242,6 +249,8 @@ func TestIncidentRepositoryMemory_ListIncidents(t *testing.T) {
 		ShortDescription: "some short description 2",
 		Description:      "some description 2",
 	}
+	err = inc2.SetState(incident.StateCancelled)
+	require.NoError(t, err)
 	err = inc2.CreatedUpdated.SetCreatedBy(basicUser)
 	require.NoError(t, err)
 	err = inc2.CreatedUpdated.SetUpdatedBy(basicUser2)

@@ -186,7 +186,7 @@ func Test_incidentService_UpdateIncident(t *testing.T) {
 	assert.Equal(t, updatedInc.UUID(), incID)
 }
 
-func Test_incidentService_StartWorking(t *testing.T) {
+func Test_incidentService_StartWorking_and_StopWorking(t *testing.T) {
 	channelID := ref.ChannelID("e27ddcd0-0e1f-4bc5-93df-f6f04155beec")
 	ctx := context.Background()
 
@@ -239,7 +239,7 @@ func Test_incidentService_StartWorking(t *testing.T) {
 
 	// StartWorking
 	remote := true
-	err = svc.StartWorking(ctx, channelID, actorUser, incID, api.IncidentStartWorkingParams{Remote: remote})
+	err = svc.StartWorking(ctx, channelID, actorUser, incID, api.IncidentStartWorkingParams{Remote: remote}, clock)
 	require.NoError(t, err)
 
 	// GetIncident
@@ -249,7 +249,11 @@ func Test_incidentService_StartWorking(t *testing.T) {
 	assert.Equal(t, incParams.Number, updatedInc.Number)
 	assert.Equal(t, incParams.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, incident.StateInProgress, updatedInc.State())
+	assert.Len(t, updatedInc.Timelogs, 1)
 	assert.True(t, updatedInc.HasOpenTimelog())
+	assert.NotEmpty(t, updatedInc.OpenTimelog().Start)
+	assert.Empty(t, updatedInc.OpenTimelog().End)
+	assert.Empty(t, updatedInc.OpenTimelog().Work)
 	assert.Equal(t, remote, updatedInc.OpenTimelog().Remote)
 
 	// GetFieldEngineer
@@ -263,4 +267,23 @@ func Test_incidentService_StartWorking(t *testing.T) {
 	assert.Equal(t, tsession.StateWork, openTS.State())
 	assert.Len(t, openTS.Incidents, 1)
 	assert.Equal(t, incID, openTS.Incidents[0].IncidentID)
+
+	clock.AddTime(2 * time.Hour)
+	err = svc.StopWorking(ctx, channelID, actorUser, incID, api.IncidentStopWorkingParams{VisitSummary: "some message"}, clock)
+	require.NoError(t, err)
+
+	// GetIncident
+	updatedInc, err = svc.GetIncident(ctx, channelID, actorUser, incID)
+	require.NoError(t, err)
+
+	assert.Equal(t, incParams.Number, updatedInc.Number)
+	assert.Equal(t, incParams.ExternalID, updatedInc.ExternalID)
+	assert.Equal(t, incident.StateInProgress, updatedInc.State())
+	assert.Len(t, updatedInc.Timelogs, 1)
+	assert.Nil(t, updatedInc.OpenTimelog())
+
+	//TODO test when incidentsvc.GetTimelog(ID) is implemented
+	//assert.NotEmpty(t, timelog.End)
+	//assert.Equal(t, clock.NowFormatted(), timelog.End)
+	//assert.NotEmpty(t, timelog.Work)
 }

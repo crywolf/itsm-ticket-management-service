@@ -239,9 +239,59 @@ func (s *Server) IncidentStartWorking() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		err = s.incidentService.StartWorking(r.Context(), channelID, actorUser, ref.UUID(incID), payload)
+		err = s.incidentService.StartWorking(r.Context(), channelID, actorUser, ref.UUID(incID), payload, s.clock)
 		if err != nil {
 			s.logger.Errorw("IncidentStartWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		s.presenters.incident.RenderNoContentHeader(w, listIncidentsRoute, ref.UUID(incID))
+	}
+}
+
+// swagger:route POST /incidents/{uuid}/stop_working incidents IncidentStopWorking
+// Stops working on incident by field engineer
+// responses:
+//	204: incidentNoContentResponse
+//	400: errorResponse400
+//	401: errorResponse401
+//  403: errorResponse403
+const incidentStopWorkingRoute = "/incidents/{uuid}/stop_working"
+
+// IncidentStopWorking returns handler for stop working action
+func (s *Server) IncidentStopWorking() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		incID := params.ByName("id")
+		if incID == "" {
+			err := presenters.NewErrorf(http.StatusBadRequest, "malformed URL: missing resource ID param")
+			s.logger.Errorw("IncidentStopWorking handler failed", "error", err)
+			s.presenters.base.RenderError(w, "", err)
+			return
+		}
+
+		payload, err := s.inputPayloadConverters.incident.IncidentStopWorkingParamsFromBody(r)
+		if err != nil {
+			s.logger.Warnw("IncidentStopWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		channelID, err := s.assertChannelID(w, r)
+		if err != nil {
+			return
+		}
+
+		actorUser, err := s.actorFromRequest(r)
+		if err != nil {
+			s.logger.Errorw("IncidentStopWorking handler failed", "error", err)
+			s.presenters.incident.RenderError(w, "", err)
+			return
+		}
+
+		err = s.incidentService.StopWorking(r.Context(), channelID, actorUser, ref.UUID(incID), payload, s.clock)
+		if err != nil {
+			s.logger.Errorw("IncidentStopWorking handler failed", "error", err)
 			s.presenters.incident.RenderError(w, "", err)
 			return
 		}
@@ -289,6 +339,7 @@ func (h IncidentHypermediaMapper) RoutesToHypermediaActionLinks() hypermedia.Act
 
 	links.Add(incident.ActionCancel.String(), "CancelIncident", cancelIncidentRoute)
 	links.Add(incident.ActionStartWorking.String(), "IncidentStartWorking", incidentStartWorkingRoute)
+	links.Add(incident.ActionStopWorking.String(), "IncidentStopWorking", incidentStopWorkingRoute)
 
 	return links
 }

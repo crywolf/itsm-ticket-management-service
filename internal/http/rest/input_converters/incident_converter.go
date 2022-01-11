@@ -51,3 +51,14 @@ func (c incidentPayloadConverter) IncidentStartWorkingParamsFromBody(r *http.Req
 
 	return payload, nil
 }
+
+// IncidentStopWorkingParamsFromBody converts JSON payload to api.IncidentStopWorkingParams
+func (c incidentPayloadConverter) IncidentStopWorkingParamsFromBody(r *http.Request) (api.IncidentStopWorkingParams, error) {
+	var payload api.IncidentStopWorkingParams
+
+	if err := c.unmarshalFromBody(r, &payload); err != nil {
+		return payload, err
+	}
+
+	return payload, nil
+}

@@ -13,6 +13,10 @@ type Timelog struct {
 
 	Remote bool
 
+	Start types.DateTime
+
+	End types.DateTime
+
 	Work uint
 
 	VisitSummary string

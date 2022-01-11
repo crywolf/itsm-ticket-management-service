@@ -22,7 +22,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// for testing with in-memory repository
 type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
@@ -101,6 +100,7 @@ func main() {
 	server := rest.NewServer(rest.Config{
 		Addr:                    viper.GetString("HTTPBindAddress"),
 		URISchema:               "http://",
+		Clock:                   realClock{},
 		Logger:                  logger,
 		ExternalUserService:     externalUserService,
 		IncidentService:         incidentService,
