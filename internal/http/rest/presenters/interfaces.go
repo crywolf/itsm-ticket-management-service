@@ -3,9 +3,9 @@ package presenters
 import (
 	"net/http"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 )
 
 // IncidentPresenter provides REST responses for incident resource

@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
+	fieldengineer "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident/timelog"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

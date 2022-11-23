@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/mocks"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/testutils"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/mocks"
+	"github.com/crywolf/itsm-ticket-management-service/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
 

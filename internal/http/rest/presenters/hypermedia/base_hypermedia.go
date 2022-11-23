@@ -3,7 +3,7 @@ package hypermedia
 import (
 	"net/url"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // BaseHypermediaMapper is a base hypermedia mapping object to be included (via object composition) in specific hypermedia implementation

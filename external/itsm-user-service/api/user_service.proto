@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package usermanagement;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/KompiTech/itsm-user-service/api/usermanagement;usermanagement";
+
+service UserManagementService {
+    rpc UserGetMyPersonalDetails(google.protobuf.Empty) returns (UserPersonalDetailsResponse) {}
+    rpc UserGet(UserRequest) returns (UserPersonalDetailsResponse) {}
+    rpc UserInvalidateCache(UserRequest) returns (google.protobuf.Empty) {}
+    rpc UserCreate(User) returns (UserPersonalDetailsResponse) {}
+    rpc UserUpdate(User) returns (UserPersonalDetailsResponse) {}
+    rpc UserSetPricing(PricingPolicyRequest) returns (PricingPolicyResponse) {}
+    rpc UserGetPricing(UserRequest) returns (PricingPolicyResponse) {}
+}
+
+message UserRequest {
+  string uuid = 1;
+}
+
+message UserPersonalDetailsResponse {
+  User result = 1;
+}
+
+message User {
+  string uuid = 1;
+  bool active = 2;
+  string name = 3;
+  string surname = 4;
+  string email = 5;
+  string phone = 6;
+  string fingerprint = 7;
+  string org_id = 8;
+  string org_name = 9;
+  string org_display_name = 10;
+  string identity_subject_id = 11;
+  string external_id = 12;
+  string type = 13;
+  string contract_type = 14;
+  string timezone = 15;
+}
+
+message PricingPolicyRequest {
+  string user_uuid = 1;
+  bytes pricing_policy = 2;
+}
+
+message PricingPolicyResponse {
+  bytes result = 1;
+}

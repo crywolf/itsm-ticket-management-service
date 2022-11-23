@@ -3,7 +3,7 @@ package converters
 import (
 	"net/http"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/api"
 )
 
 // PaginationParams provides information about current requested page number and a number of items per page to be displayed

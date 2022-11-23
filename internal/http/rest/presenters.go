@@ -1,12 +1,12 @@
 package rest
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters"
 )
 
 type jsonPresenters struct {
-	base *presenters.BasePresenter
-	incident  presenters.IncidentPresenter
+	base     *presenters.BasePresenter
+	incident presenters.IncidentPresenter
 }
 
 func (s *Server) registerPresenters() {

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
 )
 
 // Incident API object

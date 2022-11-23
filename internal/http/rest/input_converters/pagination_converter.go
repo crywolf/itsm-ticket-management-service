@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters"
 )
 
 type paginationParams struct {

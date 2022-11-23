@@ -4,10 +4,10 @@ import (
 	"context"
 	"io"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 )
 
 // BasicUserRepositoryMemory keeps data in memory

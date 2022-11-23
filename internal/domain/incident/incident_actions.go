@@ -1,9 +1,9 @@
 package incident
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident/timelog"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // AllowedAction represents action that can be performed with the incident

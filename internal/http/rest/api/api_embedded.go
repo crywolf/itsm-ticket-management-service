@@ -1,8 +1,8 @@
 package api
 
 import (
-	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	fieldengineer "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
 )
 
 // EmbeddedResources contain information about embedded objects

@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident/timelog"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 )
 
 // IncidentRepositoryMemory keeps data in memory

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/go-openapi/runtime/middleware/header"
 	"go.uber.org/zap"
 )

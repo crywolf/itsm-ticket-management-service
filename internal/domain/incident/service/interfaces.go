@@ -3,14 +3,14 @@ package incidentsvc
 import (
 	"context"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
-	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident/timelog"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/api"
+	converters "github.com/crywolf/itsm-ticket-management-service/internal/http/rest/input_converters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 )
 
 // IncidentService provides incident operations

@@ -3,7 +3,7 @@ package hypermedia
 import (
 	"strings"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/embedded"
 )
 
 // TODO zabudovat do base presenteru

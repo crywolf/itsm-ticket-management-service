@@ -3,7 +3,7 @@ package mocks
 import (
 	"time"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
 )
 
 // FixedClock is used in testing. It implements Clock interface used in mock storages to create timestamp.

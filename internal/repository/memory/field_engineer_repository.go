@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
-	tsession "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	fieldengineer "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer"
+	tsession "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 )
 
 // FieldEngineerRepositoryMemory keeps data in memory

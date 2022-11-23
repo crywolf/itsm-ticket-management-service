@@ -4,7 +4,7 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters"
 	"github.com/go-openapi/runtime/middleware"
 )
 

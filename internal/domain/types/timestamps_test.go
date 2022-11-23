@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
 )
 
 func TestCreatedUpdated_SetCreatedBy(t *testing.T) {

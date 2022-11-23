@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
 )
 
 // CreatedUpdated contains timestamps and user who created/updated the resource

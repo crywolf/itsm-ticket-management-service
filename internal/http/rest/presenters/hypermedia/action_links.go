@@ -1,6 +1,6 @@
 package hypermedia
 
-import "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
+import "github.com/crywolf/itsm-ticket-management-service/internal/http/rest/api"
 
 // ActionLinks maps allowed resource domain actions to hypermedia action links
 type ActionLinks struct {

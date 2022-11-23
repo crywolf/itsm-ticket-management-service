@@ -3,7 +3,7 @@ package user
 import (
 	"errors"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
 )
 
 // DefaultItemsPerPage is a default number of records to be shown per one page in the list of items

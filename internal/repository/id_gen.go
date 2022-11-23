@@ -3,8 +3,8 @@ package repository
 import (
 	"io"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
 	uuidgen "github.com/google/uuid"
 )
 

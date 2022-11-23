@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
 )
 
 // Clock provides Now method to enable mocking

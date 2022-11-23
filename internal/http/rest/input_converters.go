@@ -1,8 +1,8 @@
 package rest
 
 import (
-	converters "github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
+	converters "github.com/crywolf/itsm-ticket-management-service/internal/http/rest/input_converters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
 )
 
 type jsonInputPayloadConverters struct {

@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/repository"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
+	"github.com/crywolf/itsm-ticket-management-service/internal/repository"
 	"go.uber.org/zap"
 )
 

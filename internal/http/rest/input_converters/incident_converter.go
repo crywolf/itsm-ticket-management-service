@@ -3,8 +3,8 @@ package converters
 import (
 	"net/http"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/api"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/input_converters/validators"
 	"go.uber.org/zap"
 )
 

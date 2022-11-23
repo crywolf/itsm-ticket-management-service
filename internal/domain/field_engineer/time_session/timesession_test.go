@@ -3,8 +3,8 @@ package tsession_test
 import (
 	"testing"
 
-	. "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	. "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"net/url"
 
-	fieldengineersvc "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/service"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
+	fieldengineersvc "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer/service"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters"
+	"github.com/crywolf/itsm-ticket-management-service/internal/http/rest/presenters/hypermedia"
 	"github.com/julienschmidt/httprouter"
 )
 

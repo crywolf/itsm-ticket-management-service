@@ -3,13 +3,13 @@ package incident
 import (
 	"fmt"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/embedded"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident/timelog"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/types"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // Incident domain object

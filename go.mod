@@ -1,13 +1,13 @@
-module github.com/KompiTech/itsm-ticket-management-service
+module github.com/crywolf/itsm-ticket-management-service
 
 go 1.16
 
 require (
-	github.com/KompiTech/itsm-user-service v0.0.0-20210910124602-4b5492eb4242
 	github.com/go-openapi/runtime v0.21.0
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/onsi/ginkgo v1.16.5

@@ -3,12 +3,12 @@ package fieldengineer_test
 import (
 	"testing"
 
-	. "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
-	tsession "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	. "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer"
+	tsession "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

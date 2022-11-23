@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
 )
 
 // BasicUser API object

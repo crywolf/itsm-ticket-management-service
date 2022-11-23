@@ -1,10 +1,10 @@
 package fieldengineer
 
 import (
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
-	tsession "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain"
+	tsession "github.com/crywolf/itsm-ticket-management-service/internal/domain/field_engineer/time_session"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 )
 
 // AllowedAction represents action that can be performed with the incident

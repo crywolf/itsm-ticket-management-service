@@ -3,8 +3,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -3,9 +3,9 @@ package types
 import (
 	"errors"
 
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/embedded"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
-	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/embedded"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/ref"
+	"github.com/crywolf/itsm-ticket-management-service/internal/domain/user"
 )
 
 // CreatedUpdated contains timestamps and reference to user who created/updated the resource
