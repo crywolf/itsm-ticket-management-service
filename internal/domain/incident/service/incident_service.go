@@ -5,6 +5,7 @@ import (
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
@@ -141,4 +142,9 @@ func (s *incidentService) StopWorking(ctx context.Context, channelID ref.Channel
 	}
 
 	return nil
+}
+
+// GetIncidentTimelog returns the incident's timelog with the given ID from the repository
+func (s *incidentService) GetIncidentTimelog(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, timelogID ref.UUID) (timelog.Timelog, error) {
+	return s.incidentRepository.GetIncidentTimelog(ctx, channelID, incID, timelogID)
 }

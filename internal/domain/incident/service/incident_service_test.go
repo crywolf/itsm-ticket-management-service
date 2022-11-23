@@ -280,10 +280,15 @@ func Test_incidentService_StartWorking_and_StopWorking(t *testing.T) {
 	assert.Equal(t, incParams.ExternalID, updatedInc.ExternalID)
 	assert.Equal(t, incident.StateInProgress, updatedInc.State())
 	assert.Len(t, updatedInc.Timelogs, 1)
+	assert.False(t, updatedInc.HasOpenTimelog())
 	assert.Nil(t, updatedInc.OpenTimelog())
 
-	//TODO test when incidentsvc.GetTimelog(ID) is implemented
-	//assert.NotEmpty(t, timelog.End)
-	//assert.Equal(t, clock.NowFormatted(), timelog.End)
-	//assert.NotEmpty(t, timelog.Work)
+	// GetIncidentTimelog
+	timelogID := updatedInc.Timelogs[0]
+	timelog, err := svc.GetIncidentTimelog(ctx, channelID, actorUser, incID, timelogID)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, timelog.End)
+	assert.Equal(t, clock.NowFormatted(), timelog.End)
+	assert.NotEmpty(t, timelog.Work)
 }

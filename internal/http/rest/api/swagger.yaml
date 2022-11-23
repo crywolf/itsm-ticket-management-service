@@ -359,9 +359,19 @@ definitions:
         format: uuid
         type: string
         x-go-name: CreatedBy
+      end:
+        description: Time when the timelog was closed
+        format: date-time
+        type: string
+        x-go-name: End
       remote:
         type: boolean
         x-go-name: Remote
+      start:
+        description: Time when the timelog was created
+        format: date-time
+        type: string
+        x-go-name: Start
       updated_at:
         description: Time when the resource was updated
         format: date-time
@@ -651,6 +661,50 @@ paths:
           $ref: '#/responses/errorResponse403'
       tags:
       - incidents
+  /incidents/{uuid}/timelogs/{timelog_uuid}:
+    get:
+      description: Returns a single timelog for the incident
+      operationId: GetIncidentTimelog
+      parameters:
+      - description: Bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+        x-go-name: Authorization
+      - format: uuid
+        in: header
+        name: channel-id
+        required: true
+        type: string
+        x-go-name: ChannelID
+      - description: ID of the resource
+        format: uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+        x-go-name: TicketUUID
+      - description: ID of the timelog
+        format: uuid
+        in: path
+        name: timelog_uuid
+        required: true
+        type: string
+        x-go-name: UUID
+      responses:
+        "200":
+          $ref: '#/responses/timelogResponse'
+        "400":
+          $ref: '#/responses/errorResponse400'
+        "401":
+          $ref: '#/responses/errorResponse401'
+        "403":
+          $ref: '#/responses/errorResponse403'
+        "404":
+          $ref: '#/responses/errorResponse404'
+      tags:
+      - incidents
 produces:
 - application/json
 responses:
@@ -831,6 +885,66 @@ responses:
       - number
       - short_description
       - state
+      type: object
+  timelogResponse:
+    description: Data structure representing a single timelog
+    schema:
+      properties:
+        _embedded:
+          $ref: '#/definitions/EmbeddedResources'
+        _links:
+          $ref: '#/definitions/HypermediaLinks'
+        created_at:
+          description: Time when the resource was created
+          format: date-time
+          type: string
+          x-go-name: CreatedAt
+        created_by:
+          description: Reference to the user who created this resource
+          format: uuid
+          type: string
+          x-go-name: CreatedBy
+        end:
+          description: Time when the timelog was closed
+          format: date-time
+          type: string
+          x-go-name: End
+        remote:
+          type: boolean
+          x-go-name: Remote
+        start:
+          description: Time when the timelog was created
+          format: date-time
+          type: string
+          x-go-name: Start
+        updated_at:
+          description: Time when the resource was updated
+          format: date-time
+          type: string
+          x-go-name: UpdatedAt
+        updated_by:
+          description: Reference to the user who updated this resource
+          format: uuid
+          type: string
+          x-go-name: UpdatedBy
+        uuid:
+          format: uuid
+          type: string
+          x-go-name: UUID
+        visit_summary:
+          type: string
+          x-go-name: VisitSummary
+        work:
+          description: Time spent working in seconds
+          format: uint64
+          minimum: 0
+          type: integer
+          x-go-name: Work
+      required:
+      - created_at
+      - created_by
+      - uuid
+      - remote
       type: object
 schemes:
 - http

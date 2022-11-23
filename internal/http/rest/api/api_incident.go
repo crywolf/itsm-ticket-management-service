@@ -128,6 +128,7 @@ type incidentNoContentResponseWrapper struct {
 }
 
 ///////////////////
+// Actions
 
 // IncidentStartWorkingParams is the payload used to start working on the incident
 // swagger:model

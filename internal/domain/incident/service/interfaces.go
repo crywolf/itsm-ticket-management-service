@@ -5,6 +5,7 @@ import (
 
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user/actor"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/http/rest/api"
@@ -31,4 +32,7 @@ type IncidentService interface {
 
 	// StopWorking is used by actor (field engineer) to stop working on the incident
 	StopWorking(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, params api.IncidentStopWorkingParams, clock domain.Clock) error
+
+	// GetIncidentTimelog returns the incident's timelog with the given ID from the repository
+	GetIncidentTimelog(ctx context.Context, channelID ref.ChannelID, actor actor.Actor, incID ref.UUID, timelogID ref.UUID) (timelog.Timelog, error)
 }

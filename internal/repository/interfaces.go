@@ -6,6 +6,7 @@ import (
 
 	fieldengineer "github.com/KompiTech/itsm-ticket-management-service/internal/domain/field_engineer"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident"
+	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/incident/timelog"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/ref"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/types"
 	"github.com/KompiTech/itsm-ticket-management-service/internal/domain/user"
@@ -54,6 +55,9 @@ type IncidentRepository interface {
 
 	// ListIncidents returns the list of incidents from the repository
 	ListIncidents(ctx context.Context, channelID ref.ChannelID, page, perPage uint) (IncidentList, error)
+
+	// GetIncidentTimelog returns the incident's timelog with the given ID from the repository
+	GetIncidentTimelog(ctx context.Context, channelID ref.ChannelID, incID ref.UUID, timelogID ref.UUID) (timelog.Timelog, error)
 }
 
 // IncidentList is a container with list of results and pagination info

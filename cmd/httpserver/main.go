@@ -150,5 +150,4 @@ func main() {
 
 	logger.Info("Exiting")
 	_ = logger.Sync()
-
 }

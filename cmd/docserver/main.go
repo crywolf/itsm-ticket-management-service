@@ -31,8 +31,8 @@ func main() {
 	r.Handler(http.MethodGet, "/", docsHandler)
 	r.Handler(http.MethodGet, "/swagger.yaml", http.FileServer(http.Dir("./internal/http/rest/api")))
 
-	viper.SetDefault("HTTPBindPort", "3001")
-	_ = viper.BindEnv("HTTPBindPort", "HTTP_DOCS_PORT")
+	//viper.SetDefault("HTTPBindPort", "3001")
+	//_ = viper.BindEnv("HTTPBindPort", "HTTP_DOCS_PORT")
 
 	flag.String("port", "3001", "http server port")
 

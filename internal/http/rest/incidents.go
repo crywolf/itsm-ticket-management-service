@@ -20,6 +20,8 @@ func (s Server) registerIncidentRoutes() {
 	s.router.GET("/incidents/:id", s.GetIncident())
 	s.router.GET("/incidents", s.ListIncidents())
 	s.router.POST("/incidents/:id/start_working", s.IncidentStartWorking())
+	s.router.POST("/incidents/:id/stop_working", s.IncidentStopWorking())
+	s.router.GET("/incidents/:id/timelogs/:timelog_uuid", s.GetIncidentTimelog())
 }
 
 // swagger:route POST /incidents incidents CreateIncident
@@ -297,6 +299,24 @@ func (s *Server) IncidentStopWorking() func(w http.ResponseWriter, r *http.Reque
 		}
 
 		s.presenters.incident.RenderNoContentHeader(w, listIncidentsRoute, ref.UUID(incID))
+	}
+}
+
+// swagger:route GET /incidents/{uuid}/timelogs/{timelog_uuid} incidents GetIncidentTimelog
+// Returns a single timelog for the incident
+// responses:
+//	200: timelogResponse
+//	400: errorResponse400
+//  401: errorResponse401
+//  403: errorResponse403
+//	404: errorResponse404
+
+// GetIncidentTimelog returns handler for GetIncidentTimelog action
+func (s *Server) GetIncidentTimelog() func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+
+		// TODO
+
 	}
 }
 

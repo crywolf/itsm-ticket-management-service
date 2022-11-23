@@ -293,3 +293,28 @@ func (r IncidentRepositoryMemory) convertStoredToDomainIncident(ctx context.Cont
 
 	return inc, nil
 }
+
+// GetIncidentTimelog returns the incident's timelog with the given ID from the repository
+func (r IncidentRepositoryMemory) GetIncidentTimelog(ctx context.Context, channelID ref.ChannelID, incID ref.UUID, timelogID ref.UUID) (timelog.Timelog, error) {
+	var tmlg timelog.Timelog
+
+	_, err := r.GetIncident(ctx, channelID, incID)
+	if err != nil {
+		return tmlg, err
+	}
+
+	for _, storedTimelog := range r.timelogs {
+		if storedTimelog.ID == timelogID.String() {
+			tmlg = timelog.Timelog{
+				Remote:       storedTimelog.Remote,
+				Start:        types.DateTime(storedTimelog.Start),
+				End:          types.DateTime(storedTimelog.End),
+				Work:         storedTimelog.Work,
+				VisitSummary: storedTimelog.VisitSummary,
+			}
+			return tmlg, nil
+		}
+	}
+
+	return tmlg, domain.WrapErrorf(ErrNotFound, domain.ErrorCodeNotFound, "error loading ticket from repository")
+}

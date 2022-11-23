@@ -8,9 +8,6 @@ func loadEnvConfiguration() {
 	viper.SetDefault("HTTPBindAddress", "localhost:8080")
 	_ = viper.BindEnv("HTTPBindAddress", "HTTP_BIND_ADDRESS")
 
-	viper.SetDefault("HTTPBindPort", "8080")
-	_ = viper.BindEnv("HTTPBindPort", "HTTP_BIND_PORT")
-
 	viper.SetDefault("ExternalLocationAddress", "http://localhost:8080")
 	_ = viper.BindEnv("ExternalLocationAddress", "EXTERNAL_LOCATION_ADDRESS")
 

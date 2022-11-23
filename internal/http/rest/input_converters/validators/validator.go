@@ -13,23 +13,27 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 )
 
+// NewPayloadValidator returns new payload validator
 func NewPayloadValidator() PayloadValidator {
-	return &payloadValidator{}
-}
-
-type payloadValidator struct {}
-
-
-func (v payloadValidator) Validate(payload interface{}) error {
 	validate := validator.New()
 
+	return &payloadValidator{
+		validator: validate,
+	}
+}
+
+type payloadValidator struct {
+	validator *validator.Validate
+}
+
+func (v payloadValidator) Validate(payload interface{}) error {
 	english := en.New()
 	uni := ut.New(english, english)
 	trans, _ := uni.GetTranslator("en")
-	_ = en_translations.RegisterDefaultTranslations(validate, trans)
+	_ = en_translations.RegisterDefaultTranslations(v.validator, trans)
 
 	// use the names which have been specified for JSON representations of structs, rather than normal Go field names
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+	v.validator.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {
 			return ""
@@ -37,7 +41,7 @@ func (v payloadValidator) Validate(payload interface{}) error {
 		return fmt.Sprintf("'%s'", name)
 	})
 
-	err := validate.Struct(payload)
+	err := v.validator.Struct(payload)
 	if err != nil {
 		errs := translateError(err, trans)
 		var errStrings []string
